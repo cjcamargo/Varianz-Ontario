@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from uuid import UUID, uuid4
 
 import httpx
@@ -119,10 +119,13 @@ def demo_profile():
 @api.post("/replay-sessions")
 def create_replay_session():
     data = _data()
+    minimum = data.operational.observed_at.min().to_pydatetime(warn=False)
+    maximum = data.operational.observed_at.max().to_pydatetime(warn=False)
     session = ReplaySession.create(
         uuid4(),
-        data.operational.observed_at.min().to_pydatetime(warn=False),
-        data.operational.observed_at.max().to_pydatetime(warn=False),
+        minimum,
+        maximum,
+        initial_cursor=min(minimum + timedelta(days=45), maximum),
     )
     sessions[session.id] = session
     return session

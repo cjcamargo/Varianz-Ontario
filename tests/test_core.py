@@ -88,6 +88,16 @@ class DatasetTests(unittest.TestCase):
 
 
 class ReplayTests(unittest.TestCase):
+    def test_demo_start_cursor_is_independent_from_historical_minimum(self):
+        start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        demo_start = start + timedelta(days=45)
+        session = ReplaySession.create(
+            uuid4(), start, start + timedelta(days=90), initial_cursor=demo_start
+        )
+        self.assertEqual(session.cursor, demo_start)
+        self.assertEqual(session.minimum, start)
+        self.assertEqual(session.mutate("reset", 0).cursor, demo_start)
+
     def test_clock_and_revision_conflict(self):
         start = datetime(2020, 1, 1, tzinfo=timezone.utc)
         session = ReplaySession.create(uuid4(), start, start + timedelta(days=1))

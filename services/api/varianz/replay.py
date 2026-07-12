@@ -12,14 +12,25 @@ class ReplaySession:
     cursor: datetime
     minimum: datetime
     maximum: datetime
+    reset_cursor: datetime | None = None
     speed: float = 1.0
     playing: bool = False
     revision: int = 0
     anchored_at: datetime | None = None
 
     @classmethod
-    def create(cls, owner_id: UUID, minimum: datetime, maximum: datetime) -> "ReplaySession":
-        return cls(uuid4(), owner_id, minimum, minimum, maximum)
+    def create(
+        cls,
+        owner_id: UUID,
+        minimum: datetime,
+        maximum: datetime,
+        *,
+        initial_cursor: datetime | None = None,
+    ) -> "ReplaySession":
+        cursor = initial_cursor or minimum
+        if not minimum <= cursor <= maximum:
+            raise ValueError("invalid_initial_replay_cursor")
+        return cls(uuid4(), owner_id, cursor, minimum, maximum, cursor)
 
     def effective_cursor(self, now: datetime | None = None) -> datetime:
         if not self.playing or self.anchored_at is None:
@@ -51,7 +62,7 @@ class ReplaySession:
                 speed=float(value), playing=self.playing, anchored_at=now if self.playing else None
             )
         elif action == "reset":
-            changes.update(cursor=self.minimum, playing=False)
+            changes.update(cursor=self.reset_cursor or self.minimum, playing=False)
         else:
             raise ValueError("invalid_replay_action")
         return replace(self, **changes)
