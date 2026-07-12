@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from uuid import UUID
 
@@ -19,15 +21,22 @@ from .store import ORG_ID, SITE_ID, get_operational_data
 from .tariffs import get_tariff, put_tariff
 
 
-app = FastAPI(title="Varianz Operational Intelligence API", version="0.2.0")
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Supabase is the system of record. Load and pivot the immutable demo history
+    # before accepting traffic so login never pays the database cold-start cost.
+    await asyncio.to_thread(get_operational_data, settings)
+    yield
+
+
+app = FastAPI(
+    title="Varianz Operational Intelligence API",
+    version="0.2.0",
+    lifespan=lifespan,
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "PUT"],
     allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],

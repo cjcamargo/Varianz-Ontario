@@ -1,4 +1,6 @@
 .env
+*.env.local
+.env*.local
 .venv/
 __pycache__/
 .pytest_cache/
@@ -13,4 +15,6 @@ tmp/
 *.pyc
 *.tsbuildinfo
 *.mp4
+.*.log
 .claude/settings.local.json
+.claude/

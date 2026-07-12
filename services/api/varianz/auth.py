@@ -8,6 +8,7 @@ import time
 from dataclasses import dataclass
 from uuid import NAMESPACE_URL, UUID, uuid5
 
+import httpx
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -18,6 +19,7 @@ from .config import settings
 DEMO_USER_ID = uuid5(NAMESPACE_URL, "varianz:demo-user")
 
 _bearer = HTTPBearer(auto_error=False)
+_verified_tokens: dict[str, tuple[float, dict]] = {}
 
 
 @dataclass(frozen=True)
@@ -60,6 +62,41 @@ def verify_supabase_jwt(token: str, secret: str, *, now: float | None = None) ->
     return claims
 
 
+def verify_supabase_access_token(
+    token: str,
+    supabase_url: str,
+    publishable_key: str,
+    *,
+    now: float | None = None,
+) -> dict:
+    """Verify a hosted Supabase token with Auth, independent of its signing algorithm."""
+    checked_at = now or time.time()
+    cached = _verified_tokens.get(token)
+    if cached and cached[0] > checked_at:
+        return cached[1]
+    try:
+        response = httpx.get(
+            f"{supabase_url.rstrip('/')}/auth/v1/user",
+            headers={"apikey": publishable_key, "Authorization": f"Bearer {token}"},
+            timeout=10,
+        )
+    except httpx.RequestError as exc:
+        raise HTTPException(503, "auth_provider_unavailable") from exc
+    if response.status_code != 200:
+        raise HTTPException(401, "invalid_or_expired_token")
+    user = response.json()
+    subject = user.get("id")
+    if not subject:
+        raise HTTPException(401, "token_missing_subject")
+    claims = {"sub": subject, "email": user.get("email")}
+    _verified_tokens[token] = (checked_at + 60, claims)
+    if len(_verified_tokens) > 1000:
+        expired = [key for key, (expiry, _) in _verified_tokens.items() if expiry <= checked_at]
+        for key in expired:
+            _verified_tokens.pop(key, None)
+    return claims
+
+
 def current_principal(
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> Principal:
@@ -67,9 +104,16 @@ def current_principal(
         if settings.auth_required:
             raise HTTPException(401, "authentication_required")
         return Principal(DEMO_USER_ID, anonymous=True)
-    if not settings.supabase_jwt_secret:
+    if settings.supabase_url and settings.supabase_publishable_key:
+        claims = verify_supabase_access_token(
+            credentials.credentials,
+            settings.supabase_url,
+            settings.supabase_publishable_key,
+        )
+    elif settings.supabase_jwt_secret:
+        claims = verify_supabase_jwt(credentials.credentials, settings.supabase_jwt_secret)
+    else:
         raise HTTPException(503, "auth_not_configured")
-    claims = verify_supabase_jwt(credentials.credentials, settings.supabase_jwt_secret)
     subject = claims.get("sub")
     try:
         user_id = UUID(str(subject))

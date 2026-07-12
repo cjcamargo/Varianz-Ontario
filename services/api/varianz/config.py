@@ -27,14 +27,26 @@ class Settings(BaseSettings):
     )
     supabase_jwt_secret: str | None = Field(None, validation_alias="SUPABASE_JWT_SECRET")
     auth_required: bool = Field(False, validation_alias="AUTH_REQUIRED")
+    cors_origins: str = Field("", validation_alias="CORS_ORIGINS")
     database_url: str | None = Field(None, validation_alias="DATABASE_URL")
     supabase_project_ref: str | None = Field(None, validation_alias="SUPABASE_PROJECT_REF")
-    data_backend: str = Field("auto", validation_alias="DATA_BACKEND")
+    data_backend: str = Field("supabase", validation_alias="DATA_BACKEND")
 
     @field_validator("dataset_zip", mode="after")
     @classmethod
     def resolve_dataset_zip(cls, value: Path) -> Path:
         return value if value.is_absolute() else PROJECT_ROOT / value
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        local = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:3001",
+            "http://127.0.0.1:3001",
+        ]
+        configured = [origin.strip().rstrip("/") for origin in self.cors_origins.split(",") if origin.strip()]
+        return list(dict.fromkeys([*local, *configured]))
 
 
 settings = Settings()

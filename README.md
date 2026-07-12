@@ -22,6 +22,13 @@ PostgreSQL is unavailable, or `zip` for credential-free checks.
 
 Run the credential-free checks with `python -m unittest discover -s tests -v`.
 
+## Private demo authentication
+
+The web app uses Supabase email/password authentication and sends the active access token to
+FastAPI on every request. Configure the three `NEXT_PUBLIC_*` variables shown in `.env.example`
+and set `AUTH_REQUIRED=true` for public deployments. User registration is intentionally not
+exposed; create demo accounts in Supabase Auth. See `docs/12-authentication-deployment.md`.
+
 ## Supabase bootstrap
 
 After configuring `DATABASE_URL` with the Supabase session-pooler URI, run:

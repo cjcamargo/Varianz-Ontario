@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
 from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
 from varianz.agent import _evidence_json
-from varianz.auth import DEMO_USER_ID, verify_supabase_jwt
+from varianz.auth import DEMO_USER_ID, verify_supabase_access_token, verify_supabase_jwt
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
@@ -165,10 +165,16 @@ class ReplayTests(unittest.TestCase):
 class ApiTests(unittest.TestCase):
     def setUp(self):
         self.data_backend = settings.data_backend
+        self.supabase_url = settings.supabase_url
+        self.supabase_publishable_key = settings.supabase_publishable_key
         settings.data_backend = "zip"
+        settings.supabase_url = None
+        settings.supabase_publishable_key = None
 
     def tearDown(self):
         settings.data_backend = self.data_backend
+        settings.supabase_url = self.supabase_url
+        settings.supabase_publishable_key = self.supabase_publishable_key
 
     def test_versioned_dashboard_contract(self):
         client = TestClient(app)
@@ -209,10 +215,47 @@ class AuthTests(unittest.TestCase):
 
     def setUp(self):
         self.data_backend = settings.data_backend
+        self.supabase_url = settings.supabase_url
+        self.supabase_publishable_key = settings.supabase_publishable_key
         settings.data_backend = "zip"
+        settings.supabase_url = None
+        settings.supabase_publishable_key = None
 
     def tearDown(self):
         settings.data_backend = self.data_backend
+        settings.supabase_url = self.supabase_url
+        settings.supabase_publishable_key = self.supabase_publishable_key
+
+    @patch("varianz.auth.httpx.get")
+    def test_hosted_supabase_token_verification(self, get):
+        get.return_value.status_code = 200
+        get.return_value.json.return_value = {
+            "id": "11111111-1111-1111-1111-111111111111",
+            "email": "demo@varianz.ai",
+        }
+        claims = verify_supabase_access_token(
+            "unique-hosted-token",
+            "https://example.supabase.co",
+            "publishable-key",
+            now=1_000,
+        )
+        self.assertEqual(claims["sub"], "11111111-1111-1111-1111-111111111111")
+        self.assertEqual(claims["email"], "demo@varianz.ai")
+        get.assert_called_once_with(
+            "https://example.supabase.co/auth/v1/user",
+            headers={"apikey": "publishable-key", "Authorization": "Bearer unique-hosted-token"},
+            timeout=10,
+        )
+
+    @patch("varianz.auth.httpx.get")
+    def test_hosted_supabase_rejects_invalid_token(self, get):
+        get.return_value.status_code = 401
+        with self.assertRaisesRegex(Exception, "invalid_or_expired_token"):
+            verify_supabase_access_token(
+                "invalid-hosted-token",
+                "https://example.supabase.co",
+                "publishable-key",
+            )
 
     def test_anonymous_demo_owns_and_reads_its_session(self):
         client = TestClient(app)

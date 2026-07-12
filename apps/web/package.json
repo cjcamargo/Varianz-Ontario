@@ -1,1 +1,1 @@
-{"name":"@varianz/web","private":true,"scripts":{"dev":"next dev","build":"next build","lint":"next lint"},"dependencies":{"next":"^15.2.0","react":"^19.0.0","react-dom":"^19.0.0"},"devDependencies":{"@types/node":"^22","@types/react":"^19","typescript":"^5.7"}}
+{"name":"@varianz/web","private":true,"scripts":{"dev":"next dev","build":"next build","lint":"next lint"},"dependencies":{"@supabase/supabase-js":"^2.110.2","next":"^15.2.0","react":"^19.0.0","react-dom":"^19.0.0"},"devDependencies":{"@types/node":"^22","@types/react":"^19","typescript":"^5.7"}}

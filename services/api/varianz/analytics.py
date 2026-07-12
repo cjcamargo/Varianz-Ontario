@@ -450,7 +450,7 @@ def operational_snapshot(
             stride,
         ),
         "resource_series": _series(
-            visible_resources.tail(30), ["Heat_cons", "ElecHigh", "ElecLow", "CO2_cons", "Irr", "Drain"]
+            visible_resources, ["Heat_cons", "ElecHigh", "ElecLow", "CO2_cons", "Irr", "Drain"]
         ),
         "tariff": {"configured": bool(tariff), "currency": tariff.get("currency") if tariff else None},
         "metric_definitions": {

@@ -73,9 +73,10 @@ def get_operational_data(settings: Settings) -> OperationalData:
             if settings.data_backend == "supabase":
                 raise
             return _zip_frames(settings.dataset_zip, "zip_fallback")
+    if settings.data_backend == "supabase":
+        raise RuntimeError("DATABASE_URL is required when DATA_BACKEND=supabase")
     return _zip_frames(settings.dataset_zip, "zip_fallback")
 
 
 def clear_data_cache() -> None:
     _database_frames.cache_clear()
-
