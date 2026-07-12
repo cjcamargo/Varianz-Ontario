@@ -2,6 +2,7 @@ import sys
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
@@ -11,6 +12,7 @@ from varianz.dataset import load_replay_frame, profile_source, quality_report, r
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
 from varianz.main import app
+from varianz.config import settings
 
 ZIP = Path(__file__).parents[1] / "Wageningen MVP Dataset.zip"
 
@@ -98,10 +100,11 @@ class ApiTests(unittest.TestCase):
     def test_agent_fails_closed_without_server_key(self):
         client = TestClient(app)
         session = client.post("/api/v1/replay-sessions").json()
-        response = client.post(
-            f"/api/v1/replay-sessions/{session['id']}/agent/explain",
-            json={"question": "Explain the current energy status."},
-        )
+        with patch.object(settings, "openai_api_key", None):
+            response = client.post(
+                f"/api/v1/replay-sessions/{session['id']}/agent/explain",
+                json={"question": "Explain the current energy status."},
+            )
         self.assertEqual(response.status_code, 503)
 
 
