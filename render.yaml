@@ -41,7 +41,7 @@ services:
     plan: free
     rootDir: apps/web
     buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
-    startCommand: pnpm start -- -p $PORT
+    startCommand: pnpm start --port $PORT
     autoDeployTrigger: commit
     envVars:
       - key: NODE_VERSION
