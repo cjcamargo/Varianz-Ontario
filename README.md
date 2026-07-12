@@ -1,10 +1,12 @@
-# Varianz MVP
+# Varianz Operational Intelligence 0.2
 
-Operational Intelligence for Controlled Environment Agriculture. The repository is local-first: the Wageningen demo, analytics contracts and replay engine run without cloud credentials. Supabase and OpenAI are adapters activated later through environment variables.
+Operational Intelligence for Controlled Environment Agriculture. Varianz 0.2 delivers point-in-time
+diagnosis across energy/resources and climate, with natural anomaly detection and an
+evidence-grounded OpenAI interpretation layer.
 
 ## Structure
 
-- `apps/web`: Next.js dashboard shell.
+- `apps/web`: Next.js operator/investor dashboard with analyst drill-down.
 - `services/api`: FastAPI application and domain logic.
 - `supabase/migrations`: PostgreSQL schema and tenant RLS.
 - `tests`: dependency-light domain tests.
@@ -12,7 +14,11 @@ Operational Intelligence for Controlled Environment Agriculture. The repository 
 
 ## Bootstrap
 
-Use Python 3.12 and Node 20+. Copy `.env.example` to `.env`, then install `pip install -e ".[dev]"` and `npm install --prefix apps/web`. Run `uvicorn varianz.main:app --app-dir services/api --reload` and `npm run dev --prefix apps/web`. Cloud variables may remain empty for local demo work.
+Use Python 3.12 and Node 20+. Copy `.env.example` to `.env`, then install
+`pip install -e ".[dev]"` and `pnpm install --dir apps/web`. Run
+`uvicorn varianz.main:app --app-dir services/api --reload` and `pnpm --dir apps/web dev`.
+Set `DATA_BACKEND=auto` to prefer Supabase with ZIP fallback, `supabase` to fail closed when
+PostgreSQL is unavailable, or `zip` for credential-free checks.
 
 Run the credential-free checks with `python -m unittest discover -s tests -v`.
 
@@ -28,3 +34,11 @@ python scripts/db_admin.py seed
 
 The migration is transactional. The Wageningen seed uses deterministic identifiers and conflict
 handling, so rerunning it does not duplicate observations.
+
+## Varianz 0.2 workflow
+
+The synchronized UI exposes Overview, Energy & Resources, Operational Climate, Anomalies,
+Ask Varianz and Ontario Tariff Settings. Every analytical response includes replay revision,
+data/definition/model versions, quality state and evidence IDs. Cost remains hidden until an
+effective CAD tariff profile is entered. Forecasting and optimization remain outside 0.2; no
+result is presented as causal or as guaranteed savings.

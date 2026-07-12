@@ -7,7 +7,7 @@ from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
-from varianz.analytics import dashboard_snapshot, energy_baseline
+from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
@@ -45,7 +45,28 @@ class DatasetTests(unittest.TestCase):
         self.assertTrue(
             all(point["time"] <= cursor.isoformat() for point in snapshot["climate_series"])
         )
-        self.assertEqual(snapshot["definitions_version"], "1.0.0")
+        self.assertEqual(snapshot["definitions_version"], "2.0.0")
+        self.assertTrue(snapshot["quality"]["future_safe"])
+
+    def test_operational_kpis_have_units_and_reconcile(self):
+        cursor = datetime(2020, 5, 20, 12, tzinfo=timezone.utc)
+        snapshot = operational_snapshot(load_replay_frame(ZIP), read_source(ZIP, "Reference/Resources.csv"), cursor)
+        heat = snapshot["kpis"]["daily_heat_mj_m2"]
+        electricity = snapshot["kpis"]["daily_electricity_kwh_m2"]
+        self.assertAlmostEqual(
+            snapshot["kpis"]["daily_total_energy_mj_m2"], heat + 3.6 * electricity, places=2
+        )
+        self.assertEqual(snapshot["metric_definitions"]["Heat_cons"]["unit"], "MJ/m2/day")
+        self.assertIsNone(snapshot["kpis"]["operating_cost_cad_m2"])
+
+    def test_window_does_not_expose_future_data(self):
+        cursor = datetime(2020, 2, 15, 10, tzinfo=timezone.utc)
+        snapshot = operational_snapshot(
+            load_replay_frame(ZIP), read_source(ZIP, "Reference/Resources.csv"), cursor, "6h"
+        )
+        times = [point["time"] for point in snapshot["climate_series"]]
+        self.assertTrue(times)
+        self.assertTrue(all(time <= cursor.isoformat() for time in times))
 
     def test_energy_baseline_has_explicit_state(self):
         result = energy_baseline(ZIP, datetime(2020, 5, 20, tzinfo=timezone.utc))
@@ -74,6 +95,13 @@ class ReplayTests(unittest.TestCase):
 
 
 class ApiTests(unittest.TestCase):
+    def setUp(self):
+        self.data_backend = settings.data_backend
+        settings.data_backend = "zip"
+
+    def tearDown(self):
+        settings.data_backend = self.data_backend
+
     def test_versioned_dashboard_contract(self):
         client = TestClient(app)
         self.assertEqual(client.get("/api/v1/health").status_code, 200)

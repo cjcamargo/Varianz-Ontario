@@ -8,29 +8,14 @@ import psycopg
 from psycopg import sql
 
 from varianz.config import settings
-from varianz.dataset import load_replay_frame, source_sha256
+from varianz.dataset import load_replay_frame, load_resources, source_sha256
+from varianz.metrics import METRICS, OPERATIONAL_CODES, RESOURCE_CODES
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MIGRATION = ROOT / "supabase" / "migrations" / "202607110001_initial.sql"
+MIGRATIONS = ROOT / "supabase" / "migrations"
 ORG_ID = uuid5(NAMESPACE_URL, "varianz:demo-organization")
 SITE_ID = uuid5(NAMESPACE_URL, "varianz:demo-greenhouse")
-
-METRICS = {
-    "Tair": ("Indoor air temperature", "temperature", "degC"),
-    "Rhair": ("Indoor relative humidity", "relative_humidity", "%"),
-    "HumDef": ("Indoor humidity deficit", "humidity_deficit", "g/m3"),
-    "CO2air": ("Indoor carbon dioxide", "concentration", "ppm"),
-    "AssimLight": ("Assimilation lighting", "control_signal", "%"),
-    "EnScr": ("Energy screen position", "control_signal", "%"),
-    "PipeLow": ("Lower heating pipe temperature", "temperature", "degC"),
-    "t_heat_vip": ("Heating setpoint", "temperature", "degC"),
-    "Tout": ("Outdoor temperature", "temperature", "degC"),
-    "Rhout": ("Outdoor relative humidity", "relative_humidity", "%"),
-    "Iglob": ("Global solar radiation", "irradiance", "W/m2"),
-    "Windsp": ("Outdoor wind speed", "speed", "m/s"),
-}
-
 
 def connect() -> psycopg.Connection:
     if not settings.database_url:
@@ -63,20 +48,37 @@ def status() -> None:
 
 
 def migrate() -> None:
-    migration_sql = MIGRATION.read_text(encoding="utf-8")
     with connect() as conn, conn.cursor() as cur:
+        cur.execute("create schema if not exists audit")
+        cur.execute(
+            """
+            create table if not exists audit.schema_migration (
+              version text primary key,
+              applied_at timestamptz not null default now()
+            )
+            """
+        )
         cur.execute(
             "select exists(select 1 from information_schema.schemata where schema_name='app')"
         )
-        if cur.fetchone()[0]:
-            print({"migration": "already_applied"})
-            return
-        cur.execute(migration_sql)
-    print({"migration": MIGRATION.name, "status": "applied"})
+        app_exists = cur.fetchone()[0]
+        applied = []
+        for migration in sorted(MIGRATIONS.glob("*.sql")):
+            cur.execute("select exists(select 1 from audit.schema_migration where version=%s)", (migration.name,))
+            if cur.fetchone()[0]:
+                continue
+            if migration.name == "202607110001_initial.sql" and app_exists:
+                cur.execute("insert into audit.schema_migration(version) values (%s)", (migration.name,))
+                continue
+            cur.execute(migration.read_text(encoding="utf-8"))
+            cur.execute("insert into audit.schema_migration(version) values (%s)", (migration.name,))
+            applied.append(migration.name)
+    print({"migrations_applied": applied, "status": "current"})
 
 
 def seed() -> None:
     frame = load_replay_frame(settings.dataset_zip)
+    resources = load_resources(settings.dataset_zip)
     dataset_hash = source_sha256(settings.dataset_zip)
     metric_ids = {code: uuid5(NAMESPACE_URL, f"varianz:metric:{code}") for code in METRICS}
     with connect() as conn, conn.cursor() as cur:
@@ -89,22 +91,33 @@ def seed() -> None:
         )
         cur.execute(
             """
-            insert into app.site(id, organization_id, name, timezone, area_m2)
-            values (%s, %s, %s, %s, %s)
-            on conflict (id) do update set name=excluded.name, timezone=excluded.timezone
+            insert into app.site(id, organization_id, name, timezone, area_m2, growing_area_m2)
+            values (%s, %s, %s, %s, %s, %s)
+            on conflict (id) do update
+            set name=excluded.name, timezone=excluded.timezone,
+                area_m2=excluded.area_m2, growing_area_m2=excluded.growing_area_m2
             """,
-            (SITE_ID, ORG_ID, "Wageningen Reference Greenhouse", "Europe/Amsterdam", None),
+            (SITE_ID, ORG_ID, "Wageningen Reference Greenhouse", "Europe/Amsterdam", 96, 62.5),
         )
-        for code, (label, dimension, unit) in METRICS.items():
+        for code, definition in METRICS.items():
             cur.execute(
                 """
-                insert into app.metric_definition(id, code, label, dimension, canonical_unit)
-                values (%s, %s, %s, %s, %s)
+                insert into app.metric_definition
+                    (id, code, label, dimension, canonical_unit, version, grain,
+                     aggregation, source, quality_rule, owner)
+                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 on conflict (code) do update
                 set label=excluded.label, dimension=excluded.dimension,
-                    canonical_unit=excluded.canonical_unit
+                    canonical_unit=excluded.canonical_unit, version=excluded.version,
+                    grain=excluded.grain, aggregation=excluded.aggregation,
+                    source=excluded.source, quality_rule=excluded.quality_rule,
+                    owner=excluded.owner
                 """,
-                (metric_ids[code], code, label, dimension, unit),
+                (
+                    metric_ids[code], code, definition.label, definition.dimension,
+                    definition.unit, 2, definition.grain, definition.aggregation,
+                    definition.source, definition.quality_rule, "Varianz Analytics",
+                ),
             )
 
         cur.execute("create temporary table seed_observation (like app.observation including defaults)")
@@ -115,15 +128,28 @@ def seed() -> None:
                 "source_record_id) from stdin"
             )
         ) as copy:
-            for row in frame.itertuples(index=False):
-                observed_at = row.observed_at.to_pydatetime()
-                source_id = f"wageningen:{dataset_hash[:12]}:{observed_at.isoformat()}"
-                for code in METRICS:
-                    value = getattr(row, code)
-                    if value == value:
-                        copy.write_row(
-                            (ORG_ID, SITE_ID, metric_ids[code], observed_at, float(value), "valid", source_id)
-                        )
+            for source_name, source_frame, codes in [
+                ("operational", frame, OPERATIONAL_CODES),
+                ("resources", resources, RESOURCE_CODES),
+            ]:
+                for row in source_frame.itertuples(index=False):
+                    observed_at = row.observed_at.to_pydatetime(warn=False)
+                    source_id = (
+                        f"wageningen:{dataset_hash[:12]}:{observed_at.isoformat()}"
+                        if source_name == "operational"
+                        else f"wageningen:{source_name}:{dataset_hash[:12]}:{observed_at.isoformat()}"
+                    )
+                    for code in codes:
+                        if not hasattr(row, code):
+                            continue
+                        value = getattr(row, code)
+                        if value == value:
+                            copy.write_row(
+                                (
+                                    ORG_ID, SITE_ID, metric_ids[code], observed_at,
+                                    float(value), "valid", source_id,
+                                )
+                            )
         cur.execute(
             """
             insert into app.observation

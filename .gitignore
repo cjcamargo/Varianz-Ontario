@@ -11,3 +11,4 @@ dist/
 coverage/
 tmp/
 *.pyc
+*.tsbuildinfo

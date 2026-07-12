@@ -7,6 +7,8 @@ from functools import lru_cache
 from pathlib import Path
 import pandas as pd
 
+from .metrics import OPERATIONAL_CODES
+
 EXCEL_ORIGIN = "1899-12-30"
 PREFIX = "Wageningen MVP Dataset/"
 SOURCES = (
@@ -109,18 +111,8 @@ def quality_report(path: Path) -> dict:
 def load_replay_frame(path: Path) -> pd.DataFrame:
     climate = read_source(path, "Reference/GreenhouseClimate.csv")
     weather = read_source(path, "Weather/Weather.csv")
-    cc = [
-        "observed_at",
-        "Tair",
-        "Rhair",
-        "HumDef",
-        "CO2air",
-        "AssimLight",
-        "EnScr",
-        "PipeLow",
-        "t_heat_vip",
-    ]
-    wc = ["observed_at", "Tout", "Rhout", "Iglob", "Windsp"]
+    cc = ["observed_at", *[c for c in OPERATIONAL_CODES if c in climate.columns]]
+    wc = ["observed_at", *[c for c in OPERATIONAL_CODES if c in weather.columns]]
     return (
         climate[cc]
         .merge(weather[wc], on="observed_at", how="inner")

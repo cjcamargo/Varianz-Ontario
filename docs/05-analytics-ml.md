@@ -1,5 +1,13 @@
 # Analytics, ML and Optimization
 
+## Varianz 0.2 implementation decision
+
+The first promoted vertical slice is diagnosis and explanation. The heat baseline compares a
+deterministic Elastic Net candidate against a rolling seven-day median using four ordered folds
+and a locked final 20%. If the candidate fails the promotion gate, the API explicitly retains the
+naive model. Natural climate events require at least three consecutive five-minute observations;
+no synthetic anomaly is injected into source history.
+
 ## Metric contract
 
 Each metric declares ID, label, formula, unit, boundary, source, grain, aggregation, missing-data rule, quality threshold, version and owner. Electricity-to-energy uses `1 kWh = 3.6 MJ`; costs use a versioned tariff, never a hard-coded UI value.
