@@ -6,7 +6,7 @@ type Payload = { session_id:string; revision:number; cursor:string; playing:bool
 function Chart({data}:{data:Point[]}) { const vals=data.flatMap(p=>[p.Tair,p.Tout]).filter((v):v is number=>typeof v==="number"); if(!vals.length)return <div className="chart">No observations at this cursor.</div>; const lo=Math.min(...vals)-1,hi=Math.max(...vals)+1,w=800,h=230; const path=(k:"Tair"|"Tout")=>data.map((p,i)=>`${i?"L":"M"}${i/(data.length-1||1)*w},${h-((p[k]??lo)-lo)/(hi-lo)*h}`).join(" "); return <div className="chart"><svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Inside and outside temperature"><path d={path("Tair")} className="inside"/><path d={path("Tout")} className="outside"/></svg><div className="legend">Green: inside · Amber: outside</div></div> }
 export default function Dashboard(){
   const [data,setData]=useState<Payload|null>(null),[error,setError]=useState("");
-  async function refresh(id:string){setData(await fetch(`${API}/replay-sessions/${id}/dashboard`).then(r=>r.json()))}
+  async function refresh(id:string){const next:Payload=await fetch(`${API}/replay-sessions/${id}/dashboard`).then(r=>r.json());setData(current=>!current||next.revision>=current.revision?next:current)}
   async function create(){try{const s=await fetch(`${API}/replay-sessions`,{method:"POST"}).then(r=>r.json());await refresh(s.id)}catch{setError("API unavailable. Start FastAPI locally.")}}
   async function mutate(action:string,value?:number){if(!data)return;const s=await fetch(`${API}/replay-sessions/${data.session_id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,expected_revision:data.revision,value})}).then(r=>r.json());await refresh(s.id)}
   useEffect(()=>{create()},[]);
