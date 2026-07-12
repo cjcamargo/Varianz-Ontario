@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "varianz-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "pandas>=2.2,<3",
+  "pydantic-settings>=2.7,<3",
+  "httpx>=0.28,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<9", "ruff>=0.9,<1"]
+
+[tool.setuptools]
+package-dir = {"" = "services/api"}
+
+[tool.setuptools.packages.find]
+where = ["services/api"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

@@ -1,0 +1,109 @@
+import sys
+import unittest
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from uuid import uuid4
+
+sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
+
+from varianz.analytics import dashboard_snapshot, energy_baseline
+from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
+from varianz.replay import ReplaySession
+from fastapi.testclient import TestClient
+from varianz.main import app
+
+ZIP = Path(__file__).parents[1] / "Wageningen MVP Dataset.zip"
+
+
+class DatasetTests(unittest.TestCase):
+    def test_source_contracts(self):
+        profile = profile_source(ZIP, "Reference/Resources.csv")
+        self.assertEqual(profile.rows, 166)
+        self.assertEqual(profile.duplicate_timestamps, 0)
+        self.assertEqual(profile.start[:10], "2019-12-16")
+
+    def test_replay_frame_is_ordered_and_joined(self):
+        frame = load_replay_frame(ZIP)
+        self.assertEqual(len(frame), 47809)
+        self.assertTrue(frame.observed_at.is_monotonic_increasing)
+
+    def test_all_sources_parse_and_reconcile(self):
+        report = quality_report(ZIP)
+        self.assertEqual(report["totals"]["sources"], 8)
+        self.assertEqual(report["totals"]["rows"], 143658)
+        quality = read_source(ZIP, "Reference/TomQuality.csv")
+        self.assertEqual(
+            list(quality.columns),
+            ["observed_at", "Flavour", "TSS", "Acid", "%Juice", "Bite", "Weight", "DMC_fruit"],
+        )
+
+    def test_dashboard_is_point_in_time_safe(self):
+        cursor = datetime(2020, 3, 1, 12, tzinfo=timezone.utc)
+        snapshot = dashboard_snapshot(ZIP, cursor)
+        self.assertTrue(
+            all(point["time"] <= cursor.isoformat() for point in snapshot["climate_series"])
+        )
+        self.assertEqual(snapshot["definitions_version"], "1.0.0")
+
+    def test_energy_baseline_has_explicit_state(self):
+        result = energy_baseline(ZIP, datetime(2020, 5, 20, tzinfo=timezone.utc))
+        self.assertEqual(result["status"], "ready")
+        self.assertGreaterEqual(result["training_days"], 30)
+
+
+class ReplayTests(unittest.TestCase):
+    def test_clock_and_revision_conflict(self):
+        start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        session = ReplaySession.create(uuid4(), start, start + timedelta(days=1))
+        playing = session.mutate("play", 0, now=start)
+        self.assertEqual(
+            playing.effective_cursor(start + timedelta(seconds=10)), start + timedelta(seconds=10)
+        )
+        with self.assertRaisesRegex(ValueError, "replay_revision_conflict"):
+            playing.mutate("pause", 0, now=start)
+
+    def test_private_sessions_do_not_share_state(self):
+        start = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        left = ReplaySession.create(uuid4(), start, start + timedelta(days=1))
+        right = ReplaySession.create(uuid4(), start, start + timedelta(days=1))
+        self.assertNotEqual(left.id, right.id)
+        self.assertTrue(left.mutate("play", 0, now=start).playing)
+        self.assertFalse(right.playing)
+
+
+class ApiTests(unittest.TestCase):
+    def test_versioned_dashboard_contract(self):
+        client = TestClient(app)
+        self.assertEqual(client.get("/api/v1/health").status_code, 200)
+        created = client.post("/api/v1/replay-sessions")
+        self.assertEqual(created.status_code, 200)
+        session = created.json()
+        dashboard = client.get(f"/api/v1/replay-sessions/{session['id']}/dashboard")
+        self.assertEqual(dashboard.status_code, 200)
+        body = dashboard.json()
+        self.assertEqual(body["revision"], 0)
+        self.assertIn("kpis", body)
+
+    def test_stale_replay_revision_is_rejected(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        url = f"/api/v1/replay-sessions/{session['id']}"
+        self.assertEqual(
+            client.patch(url, json={"action": "play", "expected_revision": 0}).status_code, 200
+        )
+        self.assertEqual(
+            client.patch(url, json={"action": "pause", "expected_revision": 0}).status_code, 409
+        )
+
+    def test_agent_fails_closed_without_server_key(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        response = client.post(
+            f"/api/v1/replay-sessions/{session['id']}/agent/explain",
+            json={"question": "Explain the current energy status."},
+        )
+        self.assertEqual(response.status_code, 503)
+
+
+if __name__ == "__main__":
+    unittest.main()
