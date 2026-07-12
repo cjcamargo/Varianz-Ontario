@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass
 
 import httpx
+from fastapi.encoders import jsonable_encoder
 
 from .config import Settings
 
@@ -75,13 +76,18 @@ def _allowed_evidence(evidence: dict) -> set[str]:
     return allowed
 
 
+def _evidence_json(evidence: dict) -> str:
+    """Normalize timestamps, UUIDs and numeric scalar types before sending evidence."""
+    return json.dumps(jsonable_encoder(evidence), separators=(",", ":"), default=str)
+
+
 def _request(question: str, evidence: dict, settings: Settings, retry_note: str = "") -> tuple[dict, str]:
     body = {
         "model": settings.openai_model,
         "instructions": SYSTEM_INSTRUCTIONS,
         "input": (
             f"Operator question: {question}\n{retry_note}\n"
-            f"Evidence JSON:\n{json.dumps(evidence, separators=(',', ':'))}"
+            f"Evidence JSON:\n{_evidence_json(evidence)}"
         ),
         "max_output_tokens": settings.openai_max_output_tokens,
         "store": False,

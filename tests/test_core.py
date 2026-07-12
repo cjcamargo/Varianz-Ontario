@@ -3,11 +3,12 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
 from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
+from varianz.agent import _evidence_json
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
@@ -15,6 +16,18 @@ from varianz.main import app
 from varianz.config import settings
 
 ZIP = Path(__file__).parents[1] / "Wageningen MVP Dataset.zip"
+
+
+class AgentTests(unittest.TestCase):
+    def test_evidence_serializes_point_in_time_metadata(self):
+        payload = _evidence_json(
+            {
+                "cursor": datetime(2020, 5, 20, 12, tzinfo=timezone.utc),
+                "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+            }
+        )
+        self.assertIn('"cursor":"2020-05-20T12:00:00+00:00"', payload)
+        self.assertIn('"session_id":"11111111-1111-1111-1111-111111111111"', payload)
 
 
 class DatasetTests(unittest.TestCase):
