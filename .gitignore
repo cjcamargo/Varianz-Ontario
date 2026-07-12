@@ -12,3 +12,5 @@ coverage/
 tmp/
 *.pyc
 *.tsbuildinfo
+*.mp4
+.claude/settings.local.json

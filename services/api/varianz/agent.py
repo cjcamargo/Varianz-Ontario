@@ -89,7 +89,7 @@ def _request(question: str, evidence: dict, settings: Settings, retry_note: str 
             f"Operator question: {question}\n{retry_note}\n"
             f"Evidence JSON:\n{_evidence_json(evidence)}"
         ),
-        "max_output_tokens": settings.openai_max_output_tokens,
+        "reasoning": {"effort": settings.openai_reasoning_effort},
         "store": False,
         "text": {
             "format": {
@@ -100,14 +100,32 @@ def _request(question: str, evidence: dict, settings: Settings, retry_note: str 
             }
         },
     }
-    with httpx.Client(timeout=settings.openai_timeout_seconds) as client:
-        response = client.post(
-            "https://api.openai.com/v1/responses",
-            headers={"Authorization": f"Bearer {settings.openai_api_key}"},
-            json=body,
-        )
-        response.raise_for_status()
+    # gpt-5.6 tiers are reasoning models: an output cap has to cover reasoning
+    # tokens *and* the visible JSON, so a low ceiling truncates the response to
+    # status=incomplete. Left unset (0), the model uses its full default budget.
+    if settings.openai_max_output_tokens > 0:
+        body["max_output_tokens"] = settings.openai_max_output_tokens
+    # Transport-level failures (read timeouts, dropped connections) are transient,
+    # so give the request one extra attempt before surfacing them as a 503.
+    transport_error: httpx.RequestError | None = None
+    for attempt in range(2):
+        try:
+            with httpx.Client(timeout=settings.openai_timeout_seconds) as client:
+                response = client.post(
+                    "https://api.openai.com/v1/responses",
+                    headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+                    json=body,
+                )
+            response.raise_for_status()
+            break
+        except httpx.RequestError as exc:
+            transport_error = exc
+    else:
+        raise transport_error  # type: ignore[misc]
     payload = response.json()
+    if payload.get("status") == "incomplete":
+        reason = payload.get("incomplete_details", {}).get("reason", "unknown")
+        raise AgentUnavailable(f"OpenAI response incomplete: {reason}")
     text = _extract_output_text(payload)
     if not text:
         raise AgentUnavailable("OpenAI returned no output text")

@@ -1,4 +1,9 @@
+import base64
+import hashlib
+import hmac
+import json
 import sys
+import time
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -9,13 +14,27 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
 from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
 from varianz.agent import _evidence_json
+from varianz.auth import DEMO_USER_ID, verify_supabase_jwt
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
-from varianz.main import app
+from varianz.main import _agent_evidence, app
 from varianz.config import settings
 
 ZIP = Path(__file__).parents[1] / "Wageningen MVP Dataset.zip"
+
+
+def _mint_jwt(secret: str, subject: str, *, expires_in: int = 3600) -> str:
+    def segment(payload: dict) -> str:
+        raw = json.dumps(payload, separators=(",", ":")).encode()
+        return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+    header = segment({"alg": "HS256", "typ": "JWT"})
+    claims = segment({"sub": subject, "exp": int(time.time()) + expires_in})
+    signature = base64.urlsafe_b64encode(
+        hmac.new(secret.encode(), f"{header}.{claims}".encode(), hashlib.sha256).digest()
+    ).rstrip(b"=").decode()
+    return f"{header}.{claims}.{signature}"
 
 
 class AgentTests(unittest.TestCase):
@@ -28,6 +47,32 @@ class AgentTests(unittest.TestCase):
         )
         self.assertIn('"cursor":"2020-05-20T12:00:00+00:00"', payload)
         self.assertIn('"session_id":"11111111-1111-1111-1111-111111111111"', payload)
+
+    def test_agent_bundle_excludes_chart_series_and_keeps_focus(self):
+        snapshot = {
+            "session_id": "session",
+            "revision": 1,
+            "cursor": "2020-05-20T12:00:00+00:00",
+            "window": "24h",
+            "site": {},
+            "data_version": "data",
+            "definitions_version": "definitions",
+            "model_version": "model",
+            "quality": {},
+            "evidence_ids": ["ev_snapshot"],
+            "kpis": {},
+            "latest": {},
+            "baseline": {},
+            "tariff": {},
+            "metric_definitions": {},
+            "anomalies": [{"id": "an_focus", "active": False}],
+            "climate_series": [{"time": "large-payload"}],
+            "resource_series": [{"time": "large-payload"}],
+        }
+        bundle = _agent_evidence(snapshot, "an_focus")
+        self.assertNotIn("climate_series", bundle)
+        self.assertNotIn("resource_series", bundle)
+        self.assertEqual(bundle["focus_anomaly"]["id"], "an_focus")
 
 
 class DatasetTests(unittest.TestCase):
@@ -157,6 +202,65 @@ class ApiTests(unittest.TestCase):
                 json={"question": "Explain the current energy status."},
             )
         self.assertEqual(response.status_code, 503)
+
+
+class AuthTests(unittest.TestCase):
+    SECRET = "test-supabase-jwt-secret"
+
+    def setUp(self):
+        self.data_backend = settings.data_backend
+        settings.data_backend = "zip"
+
+    def tearDown(self):
+        settings.data_backend = self.data_backend
+
+    def test_anonymous_demo_owns_and_reads_its_session(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        self.assertEqual(session["owner_id"], str(DEMO_USER_ID))
+        overview = client.get(f"/api/v1/replay-sessions/{session['id']}/overview")
+        self.assertEqual(overview.status_code, 200)
+
+    def test_session_owner_is_isolated_from_other_users(self):
+        client = TestClient(app)
+        with patch.object(settings, "supabase_jwt_secret", self.SECRET):
+            owner = _mint_jwt(self.SECRET, "11111111-1111-1111-1111-111111111111")
+            other = _mint_jwt(self.SECRET, "22222222-2222-2222-2222-222222222222")
+            session = client.post(
+                "/api/v1/replay-sessions", headers={"Authorization": f"Bearer {owner}"}
+            ).json()
+            same = client.get(
+                f"/api/v1/replay-sessions/{session['id']}/overview",
+                headers={"Authorization": f"Bearer {owner}"},
+            )
+            foreign = client.get(
+                f"/api/v1/replay-sessions/{session['id']}/overview",
+                headers={"Authorization": f"Bearer {other}"},
+            )
+        self.assertEqual(session["owner_id"], "11111111-1111-1111-1111-111111111111")
+        self.assertEqual(same.status_code, 200)
+        self.assertEqual(foreign.status_code, 403)
+
+    def test_tampered_signature_is_rejected(self):
+        client = TestClient(app)
+        with patch.object(settings, "supabase_jwt_secret", self.SECRET):
+            forged = _mint_jwt("wrong-secret", "33333333-3333-3333-3333-333333333333")
+            response = client.post(
+                "/api/v1/replay-sessions", headers={"Authorization": f"Bearer {forged}"}
+            )
+        self.assertEqual(response.status_code, 401)
+
+    def test_auth_required_rejects_anonymous_calls(self):
+        client = TestClient(app)
+        with patch.object(settings, "auth_required", True):
+            response = client.post("/api/v1/replay-sessions")
+        self.assertEqual(response.status_code, 401)
+
+    def test_expired_token_is_rejected(self):
+        expired = _mint_jwt(self.SECRET, "44444444-4444-4444-4444-444444444444", expires_in=-10)
+        with self.assertRaises(Exception) as caught:
+            verify_supabase_jwt(expired, self.SECRET)
+        self.assertEqual(getattr(caught.exception, "status_code", None), 401)
 
 
 if __name__ == "__main__":
