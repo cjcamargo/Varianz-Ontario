@@ -7,6 +7,7 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 
 import pandas as pd
 import psycopg
+from psycopg import sql
 
 from .config import Settings
 from .dataset import load_replay_frame, load_resources
@@ -26,27 +27,30 @@ class OperationalData:
 
 
 def _query_frame(database_url: str, site_id: UUID, codes: tuple[str, ...]) -> pd.DataFrame:
+    # Aggregate to the canonical wide shape inside PostgreSQL. Fetching the long
+    # observation table and pivoting it in pandas temporarily held every metric
+    # row twice and exceeded the 512 MB memory limit of the demo runtime.
+    value_columns = sql.SQL(", ").join(
+        sql.SQL("max(o.value) filter (where m.code = {}) as {}").format(
+            sql.Literal(code), sql.Identifier(code)
+        )
+        for code in codes
+    )
+    query = sql.SQL(
+        """
+        select o.observed_at, {value_columns}
+        from app.observation o
+        join app.metric_definition m on m.id=o.metric_id
+        where o.site_id=%s and m.code=any(%s)
+        group by o.observed_at
+        order by o.observed_at
+        """
+    ).format(value_columns=value_columns)
     with psycopg.connect(database_url, connect_timeout=15) as conn:
-        rows = conn.execute(
-            """
-            select o.observed_at, m.code, o.value
-            from app.observation o
-            join app.metric_definition m on m.id=o.metric_id
-            where o.site_id=%s and m.code=any(%s)
-            order by o.observed_at
-            """,
-            (site_id, list(codes)),
-        ).fetchall()
+        rows = conn.execute(query, (site_id, list(codes))).fetchall()
     if not rows:
         raise RuntimeError("Supabase contains no operational observations")
-    long = pd.DataFrame(rows, columns=["observed_at", "code", "value"])
-    return (
-        long.pivot_table(index="observed_at", columns="code", values="value", aggfunc="last")
-        .reset_index()
-        .rename_axis(None, axis=1)
-        .sort_values("observed_at")
-        .reset_index(drop=True)
-    )
+    return pd.DataFrame(rows, columns=["observed_at", *codes])
 
 
 @lru_cache(maxsize=2)
