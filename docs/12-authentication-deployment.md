@@ -37,6 +37,18 @@ blueprint, configure all `sync: false` values in Render. Set `NEXT_PUBLIC_API_UR
 public URL plus `/api/v1`, then set `CORS_ORIGINS` to the exact web origin without a trailing
 slash. Deploy the API first and the web application second.
 
+### Cold-start behavior
+
+The API health endpoint responds before the Supabase history finishes loading. The separate
+`/api/v1/ready` endpoint returns `503` plus `Retry-After` during background warmup and `200` once
+point-in-time analytics can be served. The web application polls readiness with bounded timeouts
+and backoff before creating a replay session, and treats Render's temporary HTML loading page as
+a retryable cold-start response.
+
+This makes the Free plan recover without user reloads, but it cannot remove suspension latency.
+For investor or operator demos where immediate entry is required, use an API instance class that
+does not spin down; the frontend can remain on the lower-cost plan.
+
 ## Acceptance check
 
 1. Anonymous visitors see only the sign-in page.

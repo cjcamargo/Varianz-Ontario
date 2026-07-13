@@ -280,6 +280,7 @@ class ApiTests(unittest.TestCase):
     def test_versioned_dashboard_contract(self):
         client = TestClient(app)
         self.assertEqual(client.get("/api/v1/health").status_code, 200)
+        self.assertEqual(client.get("/api/v1/ready").json()["state"], "ready")
         created = client.post("/api/v1/replay-sessions")
         self.assertEqual(created.status_code, 200)
         session = created.json()
@@ -288,6 +289,13 @@ class ApiTests(unittest.TestCase):
         body = dashboard.json()
         self.assertEqual(body["revision"], 0)
         self.assertIn("kpis", body)
+
+    @patch("varianz.main._data_is_ready", return_value=False)
+    def test_readiness_reports_background_warmup(self, _ready):
+        response = TestClient(app).get("/api/v1/ready")
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["state"], "loading_operational_history")
+        self.assertEqual(response.headers["retry-after"], "3")
 
     def test_stale_replay_revision_is_rejected(self):
         client = TestClient(app)

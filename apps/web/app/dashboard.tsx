@@ -17,6 +17,7 @@ type DashboardProps={accessToken:string;userEmail:string;onSignOut:()=>void};
 export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardProps){
   const [view,setView]=useState<View>("overview"),[windowKey,setWindowKey]=useState<WindowKey>("24h");
   const [data,setData]=useState<Snapshot|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true);
+  const [startupMessage,setStartupMessage]=useState("Connecting to the analytics endpoint…");
   const [energyData,setEnergyData]=useState<Snapshot|null>(null),[energyGrain,setEnergyGrain]=useState<"5min"|"1h">("1h");
   const [question,setQuestion]=useState("What requires operator attention at this replay cursor?");
   const [messages,setMessages]=useState<ChatMessage[]>([]),[asking,setAsking]=useState(false),[focus,setFocus]=useState<string|null>(null);
@@ -42,7 +43,26 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
     setData(current=>!current||next.revision>=current.revision?next:current);setError("");setLoading(false);
   },[apiFetch,onSignOut,windowKey]);
 
-  const create=useCallback(async()=>{try{setLoading(true);const response=await apiFetch("/replay-sessions",{method:"POST"});if(response.status===401){await onSignOut();return}if(!response.ok)throw new Error("API unavailable");const session=await response.json();await refresh(session.id)}catch(e){setError(e instanceof Error?e.message:"API unavailable");setLoading(false)}},[apiFetch,onSignOut,refresh]);
+  const waitForApiReady=useCallback(async()=>{
+    const delays=[1000,1500,2500,4000,6000,8000,8000,8000,8000,8000];
+    for(let attempt=0;attempt<delays.length;attempt++){
+      setStartupMessage(attempt<2?"Waking the analytics endpoint…":"Loading operational history from Supabase…");
+      const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+      try{
+        const response=await apiFetch("/ready",{signal:controller.signal,cache:"no-store"});
+        const contentType=response.headers.get("content-type")||"";
+        if(contentType.includes("application/json")){
+          const payload=await response.json();
+          if(response.ok&&payload.ready)return;
+        }
+      }catch{ /* Render cold starts and request timeouts are retried below. */ }
+      finally{clearTimeout(timeout)}
+      await new Promise(resolve=>setTimeout(resolve,delays[attempt]));
+    }
+    throw new Error("The analytics endpoint is taking longer than expected. Please retry in one minute.");
+  },[apiFetch]);
+
+  const create=useCallback(async()=>{try{setLoading(true);setError("");await waitForApiReady();setStartupMessage("Preparing your replay session…");const response=await apiFetch("/replay-sessions",{method:"POST"});if(response.status===401){await onSignOut();return}const contentType=response.headers.get("content-type")||"";if(!response.ok||!contentType.includes("application/json"))throw new Error("Analytics API unavailable");const session=await response.json();if(!session.id)throw new Error("Invalid replay session response");await refresh(session.id)}catch(e){setError(e instanceof Error?e.message:"API unavailable");setLoading(false)}},[apiFetch,onSignOut,refresh,waitForApiReady]);
 
   useEffect(()=>{
     if(initializedTokenRef.current===accessToken)return;
@@ -115,7 +135,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
     <main className="workspace">
       <Topbar view={view} data={data} windowKey={windowKey} mutate={mutate} changeWindow={changeWindow}/>
       {error?<section className="error-banner">{error}<button onClick={()=>setError("")}>×</button></section>:null}
-      {loading&&!data?<div className="loading"><span/>Building point-in-time analytics…</div>:null}
+      {loading&&!data?<div className="loading"><span/>{startupMessage}</div>:null}
       {data&&view==="overview"?<OverviewView data={data} k={k} baseline={baseline} top={top} setView={setView} ask={ask}/>:null}
       {data&&view==="energy"?(visibleEnergy?<EnergyView data={visibleEnergy} k={visibleEnergy.kpis} baseline={visibleEnergy.baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain}/>:<div className="loading"><span/>Loading energy analytics…</div>):null}
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}

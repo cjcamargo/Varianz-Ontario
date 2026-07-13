@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
+from threading import Event
 from uuid import UUID
 
 import httpx
@@ -10,6 +11,7 @@ import pandas as pd
 import psycopg
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from .agent import AgentUnavailable, explain_operational
@@ -30,12 +32,39 @@ from .store import ORG_ID, SITE_ID, get_operational_data
 from .tariffs import get_tariff, put_tariff
 
 
+operational_data_ready = Event()
+operational_warmup_error: str | None = None
+
+
+async def _warm_operational_data() -> None:
+    global operational_warmup_error
+    delay = 0
+    while not operational_data_ready.is_set():
+        if delay:
+            await asyncio.sleep(delay)
+        try:
+            await asyncio.to_thread(get_operational_data, settings)
+            operational_warmup_error = None
+            operational_data_ready.set()
+            return
+        except (psycopg.Error, RuntimeError) as exc:
+            operational_warmup_error = type(exc).__name__
+            delay = min(60, max(2, delay * 2))
+
+
+def _data_is_ready() -> bool:
+    return settings.data_backend != "supabase" or operational_data_ready.is_set()
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Supabase is the system of record. Load and pivot the immutable demo history
-    # before accepting traffic so login never pays the database cold-start cost.
-    await asyncio.to_thread(get_operational_data, settings)
+    # Accept health/readiness traffic immediately while the immutable Supabase
+    # demo history is loaded in the background. This removes the cold-start
+    # deadlock between Render's health check and the first authenticated request.
+    warmup = asyncio.create_task(_warm_operational_data())
     yield
+    if not warmup.done():
+        warmup.cancel()
 
 
 app = FastAPI(
@@ -87,6 +116,9 @@ class TariffProfile(BaseModel):
 
 
 def _data():
+    if not _data_is_ready():
+        detail = "operational_data_unavailable" if operational_warmup_error else "operational_data_warming"
+        raise HTTPException(503, detail, headers={"Retry-After": "3"})
     try:
         return get_operational_data(settings)
     except (psycopg.Error, RuntimeError) as exc:
@@ -201,7 +233,21 @@ def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
 
 @api.get("/health")
 def health():
-    return {"status": "ok", "environment": settings.environment, "version": "0.2.0"}
+    return {
+        "status": "ok", "environment": settings.environment, "version": "0.2.0",
+        "data_ready": _data_is_ready(),
+    }
+
+
+@api.get("/ready")
+def readiness():
+    if not _data_is_ready():
+        return JSONResponse(
+            status_code=503,
+            content={"ready": False, "state": "loading_operational_history"},
+            headers={"Retry-After": "3"},
+        )
+    return {"ready": True, "state": "ready"}
 
 
 @api.get("/demo/profile")
