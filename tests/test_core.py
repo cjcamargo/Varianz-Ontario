@@ -13,7 +13,7 @@ from uuid import UUID, uuid4
 sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
 from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
-from varianz.agent import _evidence_json
+from varianz.agent import RESPONSE_SCHEMA, _conversation_text, _evidence_json
 from varianz.auth import DEMO_USER_ID, verify_supabase_access_token, verify_supabase_jwt
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
 from varianz.replay import ReplaySession
@@ -38,6 +38,19 @@ def _mint_jwt(secret: str, subject: str, *, expires_in: int = 3600) -> str:
 
 
 class AgentTests(unittest.TestCase):
+    def test_agent_contract_leads_with_recommendation(self):
+        self.assertIn("recommendation", RESPONSE_SCHEMA["required"])
+        self.assertEqual(RESPONSE_SCHEMA["properties"]["suggested_actions"]["maxItems"], 3)
+
+    def test_conversation_context_keeps_recent_turns(self):
+        history = [
+            {"role": "operator", "content": "Explain heating energy."},
+            {"role": "varianz", "content": "Check the heating circuit."},
+        ]
+        transcript = _conversation_text(history)
+        self.assertIn("Operator: Explain heating energy.", transcript)
+        self.assertIn("Varianz: Check the heating circuit.", transcript)
+
     def test_evidence_serializes_point_in_time_metadata(self):
         payload = _evidence_json(
             {
@@ -73,6 +86,7 @@ class AgentTests(unittest.TestCase):
         self.assertNotIn("climate_series", bundle)
         self.assertNotIn("resource_series", bundle)
         self.assertEqual(bundle["focus_anomaly"]["id"], "an_focus")
+        self.assertIn("terminology", bundle)
 
 
 class DatasetTests(unittest.TestCase):
@@ -103,7 +117,7 @@ class DatasetTests(unittest.TestCase):
         self.assertTrue(
             all(point["time"] <= cursor.isoformat() for point in snapshot["climate_series"])
         )
-        self.assertEqual(snapshot["definitions_version"], "2.0.0")
+        self.assertEqual(snapshot["definitions_version"], "2.1.0")
         self.assertTrue(snapshot["quality"]["future_safe"])
 
     def test_operational_kpis_have_units_and_reconcile(self):
@@ -115,6 +129,10 @@ class DatasetTests(unittest.TestCase):
             snapshot["kpis"]["daily_total_energy_mj_m2"], heat + 3.6 * electricity, places=2
         )
         self.assertEqual(snapshot["metric_definitions"]["Heat_cons"]["unit"], "MJ/m2/day")
+        self.assertEqual(
+            snapshot["metric_definitions"]["HumDef"]["label"],
+            "Greenhouse humidity deficit",
+        )
         self.assertIsNone(snapshot["kpis"]["operating_cost_cad_m2"])
 
     def test_window_does_not_expose_future_data(self):

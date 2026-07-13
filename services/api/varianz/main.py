@@ -43,6 +43,7 @@ app.add_middleware(
 )
 api = APIRouter(prefix="/api/v1")
 sessions: dict[UUID, ReplaySession] = {}
+assistant_histories: dict[UUID, list[dict[str, str]]] = {}
 
 
 class ReplayMutation(BaseModel):
@@ -149,6 +150,14 @@ def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
     } | {
         "anomalies": selected_anomalies,
         "focus_anomaly": focus,
+        "terminology": {
+            code: {
+                "official_name": definition["label"],
+                "unit": definition["unit"],
+                "source": definition["source"],
+            }
+            for code, definition in snapshot["metric_definitions"].items()
+        },
     }
 
 
@@ -293,8 +302,21 @@ def assistant_message(
     principal: Principal = Depends(current_principal),
 ):
     evidence = _agent_evidence(_snapshot(session_id, "24h", principal), request.anomaly_id)
+    history = assistant_histories.setdefault(session_id, [])
     try:
-        return explain_operational(request.question.strip(), evidence, settings)
+        question = request.question.strip()
+        result = explain_operational(question, evidence, settings, history)
+        history.extend(
+            [
+                {"role": "operator", "content": question},
+                {
+                    "role": "varianz",
+                    "content": f"Recommendation: {result.recommendation}\nExplanation: {result.answer}",
+                },
+            ]
+        )
+        assistant_histories[session_id] = history[-12:]
+        return result
     except AgentUnavailable as exc:
         raise HTTPException(503, str(exc)) from exc
     except httpx.HTTPStatusError as exc:

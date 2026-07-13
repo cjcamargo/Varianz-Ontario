@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AssistantResult, Snapshot, View, WindowKey } from "./lib/types";
+import { AssistantResult, ChatMessage, Snapshot, View, WindowKey } from "./lib/types";
 import { API } from "./lib/format";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -18,7 +18,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
   const [view,setView]=useState<View>("overview"),[windowKey,setWindowKey]=useState<WindowKey>("24h");
   const [data,setData]=useState<Snapshot|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true);
   const [question,setQuestion]=useState("What requires operator attention at this replay cursor?");
-  const [assistant,setAssistant]=useState<AssistantResult|null>(null),[asking,setAsking]=useState(false),[focus,setFocus]=useState<string|null>(null);
+  const [messages,setMessages]=useState<ChatMessage[]>([]),[asking,setAsking]=useState(false),[focus,setFocus]=useState<string|null>(null);
   const requestRef=useRef<AbortController|null>(null);
   const initializedTokenRef=useRef<string|null>(null);
   const mutationInFlightRef=useRef(false);
@@ -74,16 +74,18 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
   }
   async function changeWindow(next:WindowKey){setWindowKey(next);if(data)try{await refresh(data.session_id,next)}catch(e){setError(e instanceof Error?e.message:"Analytics API unavailable")}}
   async function ask(custom?:string,anomalyId?:string){
-    if(!data)return;const prompt=(custom||question).trim();setView("assistant");setFocus(anomalyId||null);setQuestion(prompt);
+    if(!data)return;const prompt=(custom||question).trim();setView("assistant");setFocus(anomalyId||null);
     if(prompt.length<3){setError("Enter a question with at least 3 characters.");return}
-    setError("");setAsking(true);
+    setError("");setAsking(true);setQuestion("");
+    setMessages(current=>[...current,{id:crypto.randomUUID(),role:"operator",text:prompt}]);
     const send=(id:string)=>apiFetch(`/replay-sessions/${id}/assistant/messages`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:prompt,anomaly_id:anomalyId})});
     try{
       let result=await send(data.session_id);
       if(result.status===401){await onSignOut();return}
       if(result.status===404){const created=await apiFetch("/replay-sessions",{method:"POST"});if(!created.ok)throw new Error("Could not restore the replay session.");const session=await created.json();await refresh(session.id);result=await send(session.id)}
       if(!result.ok){const message=result.status===422?"Please enter a clear question (3–1000 characters).":result.status===503?"Varianz AI is unavailable right now — please retry.":result.status===502?"The interpretation model returned an error. Please retry.":"Varianz AI could not complete the explanation";throw new Error(message)}
-      setAssistant(await result.json());setError("");
+      const answer:AssistantResult=await result.json();
+      setMessages(current=>[...current,{id:crypto.randomUUID(),role:"assistant",text:answer.answer,result:answer}]);setError("");
     }catch(e){setError(e instanceof Error?e.message:"Assistant unavailable")}finally{setAsking(false)}
   }
 
@@ -98,7 +100,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       {data&&view==="energy"?<EnergyView data={data} k={k} baseline={baseline} ask={ask}/>:null}
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}
       {data&&view==="anomalies"?<AnomaliesView data={data} focus={focus} setFocus={setFocus} ask={ask}/>:null}
-      {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} assistant={assistant} asking={asking} ask={ask}/>:null}
+      {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} ask={ask}/>:null}
       {data&&view==="settings"?<SettingsView siteId={data.site.id} apiFetch={apiFetch} onSaved={()=>refresh(data.session_id)}/>:null}
     </main>
   </div>
