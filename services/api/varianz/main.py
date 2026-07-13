@@ -28,6 +28,7 @@ from .energy import (
     intraday_energy_frame,
     reconstruction_metadata,
 )
+from .intraday_artifact import get_intraday_artifact, intraday_artifact_status
 from .replay import ReplaySession
 from .store import ORG_ID, SITE_ID, get_operational_data
 from .tariffs import get_tariff, put_tariff
@@ -63,6 +64,7 @@ async def lifespan(_: FastAPI):
     # demo history is loaded in the background. This removes the cold-start
     # deadlock between Render's health check and the first authenticated request.
     get_baseline_artifact()
+    get_intraday_artifact()
     warmup = asyncio.create_task(_warm_operational_data())
     yield
     if not warmup.done():
@@ -249,7 +251,9 @@ def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
 def health():
     return {
         "status": "ok", "environment": settings.environment, "version": "0.2.0",
-        "data_ready": _data_is_ready(), "baseline_artifact": baseline_artifact_status(),
+        "data_ready": _data_is_ready(),
+        "baseline_artifact": baseline_artifact_status(),
+        "intraday_artifact": intraday_artifact_status(),
     }
 
 
@@ -261,7 +265,12 @@ def readiness():
             content={"ready": False, "state": "loading_operational_history"},
             headers={"Retry-After": "3"},
         )
-    return {"ready": True, "state": "ready", "baseline_artifact": baseline_artifact_status()}
+    return {
+        "ready": True,
+        "state": "ready",
+        "baseline_artifact": baseline_artifact_status(),
+        "intraday_artifact": intraday_artifact_status(),
+    }
 
 
 @api.get("/demo/profile")
@@ -337,9 +346,12 @@ def energy_resources(
     schedule_tariff = _schedule_tariff(tariff_profile)
     cost_tariff = _cost_tariff(tariff_profile)
     tou_windows = schedule_tariff.get("tou_windows") if schedule_tariff else None
+    intraday_start = None if window == "all" else cursor - pd.Timedelta(days=7)
     five_min_intraday = intraday_energy_frame(
         data.operational, data.resources, cursor.to_pydatetime(), grain="5min",
-        tou_windows=tou_windows,
+        tou_windows=tou_windows, allocated_cache=data.intraday_cache,
+        calibrations=data.energy_calibrations, start=intraday_start,
+        cache_source=data.intraday_backend,
     )
     intraday = aggregate_intraday(five_min_intraday, grain)
     intraday = apply_intraday_cost(intraday, cost_tariff)
@@ -353,7 +365,9 @@ def energy_resources(
         intraday = intraday.iloc[:: max(1, len(intraday) // 2500)]
     records = intraday.astype(object).where(pd.notna(intraday), None).to_dict("records")
     reconstruction = reconstruction_metadata(
-        data.operational, data.resources, cursor.to_pydatetime()
+        data.operational, data.resources, cursor.to_pydatetime(),
+        calibrations=data.energy_calibrations,
+        cache_source=data.intraday_backend,
     )
     efficiency = efficiency_indicators(
         five_min_intraday,
@@ -378,6 +392,7 @@ def energy_resources(
         "grain": grain,
         "series": records,
         "reconstruction": reconstruction,
+        "serving_source": five_min_intraday.attrs.get("serving_source"),
         "cost_configured": bool(cost_tariff),
         "tou_configured": bool(schedule_tariff),
         "currency": tariff_profile.get("currency") if tariff_profile else None,
@@ -459,12 +474,17 @@ def assistant_message(
     intraday = intraday_energy_frame(
         data.operational, data.resources, cursor.to_pydatetime(), grain="5min",
         tou_windows=schedule_tariff.get("tou_windows") if schedule_tariff else None,
+        allocated_cache=data.intraday_cache, calibrations=data.energy_calibrations,
+        start=cursor - pd.Timedelta(days=7),
+        cache_source=data.intraday_backend,
     )
     snapshot["efficiency"] = efficiency_indicators(
         intraday, data.operational, data.resources, cursor.to_pydatetime(), schedule_tariff,
     )
     snapshot["reconstruction"] = reconstruction_metadata(
-        data.operational, data.resources, cursor.to_pydatetime()
+        data.operational, data.resources, cursor.to_pydatetime(),
+        calibrations=data.energy_calibrations,
+        cache_source=data.intraday_backend,
     )
     evidence = _agent_evidence(snapshot, request.anomaly_id)
     history = assistant_histories.setdefault(session_id, [])

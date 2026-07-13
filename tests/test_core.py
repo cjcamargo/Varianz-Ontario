@@ -322,9 +322,10 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["intraday"]["grain"], "1h")
+        self.assertEqual(payload["intraday"]["serving_source"], "versioned_artifact")
         self.assertEqual(
             payload["intraday"]["reconstruction"]["model_version"],
-            "energy-intraday-1.0.0",
+            "energy-intraday-1.1.0",
         )
         self.assertTrue(
             any(point["quality"] == "provisional" for point in payload["intraday"]["series"])

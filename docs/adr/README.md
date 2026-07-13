@@ -7,5 +7,6 @@
 | [003](003-typed-llm-tools.md) | Typed LLM tools and evidence boundary | Accepted |
 | [004](004-no-physical-control.md) | No physical control in MVP | Accepted |
 | [005](005-versioned-model-artifacts.md) | Versioned model artifacts for online serving | Accepted |
+| [006](006-hybrid-intraday-energy-serving.md) | Hybrid intraday energy serving | Accepted |
 
 An ADR is immutable after acceptance; a new ADR supersedes it. Each record states context, decision, consequences and reversal trigger.

@@ -12,7 +12,8 @@ from psycopg.types.json import Jsonb
 from varianz.baseline_artifact import get_baseline_artifact
 from varianz.config import settings
 from varianz.dataset import load_replay_frame, load_resources, source_sha256
-from varianz.metrics import METRICS, OPERATIONAL_CODES, RESOURCE_CODES
+from varianz.intraday_artifact import get_intraday_artifact
+from varianz.metrics import ENERGY_MODEL_VERSION, METRICS, OPERATIONAL_CODES, RESOURCE_CODES
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -99,7 +100,7 @@ def _sync_model_artifact(cur) -> str:
     artifact_uri = f"repo://{artifact.directory.relative_to(ROOT).as_posix()}/manifest.json"
     cur.execute(
         "update analytics.model_artifact set status='retired', effective_to=now() "
-        "where site_id=%s and status='active' and id<>%s",
+        "where site_id=%s and model_family='energy_baseline' and status='active' and id<>%s",
         (SITE_ID, artifact.artifact_id),
     )
     cur.execute(
@@ -107,8 +108,8 @@ def _sync_model_artifact(cur) -> str:
         insert into analytics.model_artifact
             (id, organization_id, site_id, model_version, data_version,
              definitions_version, artifact_uri, manifest_sha256, effective_from,
-             status, metadata)
-        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'active', %s)
+             status, metadata, model_family)
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'active', %s, 'energy_baseline')
         on conflict (id) do update set
             status='active', effective_to=null, artifact_uri=excluded.artifact_uri,
             manifest_sha256=excluded.manifest_sha256, metadata=excluded.metadata
@@ -127,6 +128,73 @@ def sync_artifacts() -> None:
     with connect() as conn, conn.cursor() as cur:
         artifact_id = _sync_model_artifact(cur)
     print({"active_model_artifact": artifact_id, "status": "current"})
+
+
+def sync_energy_cache() -> None:
+    artifact = get_intraday_artifact()
+    with connect() as conn, conn.cursor() as cur:
+        cur.execute(
+            "delete from analytics.intraday_energy where site_id=%s and model_version=%s",
+            (SITE_ID, ENERGY_MODEL_VERSION),
+        )
+        with cur.copy(
+            "copy analytics.intraday_energy "
+            "(organization_id, site_id, observed_at, heat_mj_m2, electricity_kwh_m2, "
+            "co2_kg_m2, quality, model_version) from stdin"
+        ) as copy:
+            for row in artifact.allocated.itertuples(index=False):
+                copy.write_row((
+                    ORG_ID, SITE_ID, row.time.to_pydatetime(warn=False),
+                    float(row.heat_mj_m2), float(row.elec_kwh_m2), float(row.co2_kg_m2),
+                    row.quality, ENERGY_MODEL_VERSION,
+                ))
+        cur.execute(
+            "delete from analytics.energy_allocation_calibration "
+            "where site_id=%s and model_version=%s",
+            (SITE_ID, ENERGY_MODEL_VERSION),
+        )
+        with cur.copy(
+            "copy analytics.energy_allocation_calibration "
+            "(organization_id, site_id, as_of_day, training_days, factors, fit_r2, "
+            "model_version) from stdin"
+        ) as copy:
+            for day, calibration in artifact.calibrations.items():
+                copy.write_row((
+                    ORG_ID, SITE_ID, day, calibration["training_days"],
+                    Jsonb(calibration["factors"]), Jsonb(calibration["fit_r2"]),
+                    ENERGY_MODEL_VERSION,
+                ))
+        manifest_path = artifact.directory / "manifest.json"
+        manifest_hash = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+        artifact_uri = f"repo://{artifact.directory.relative_to(ROOT).as_posix()}/manifest.json"
+        cur.execute(
+            "update analytics.model_artifact set status='retired', effective_to=now() "
+            "where site_id=%s and model_family='intraday_energy' and status='active' and id<>%s",
+            (SITE_ID, artifact.artifact_id),
+        )
+        cur.execute(
+            """
+            insert into analytics.model_artifact
+                (id, organization_id, site_id, model_version, data_version,
+                 definitions_version, artifact_uri, manifest_sha256, effective_from,
+                 status, metadata, model_family)
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'active', %s, 'intraday_energy')
+            on conflict (id) do update set
+                status='active', effective_to=null, artifact_uri=excluded.artifact_uri,
+                manifest_sha256=excluded.manifest_sha256, metadata=excluded.metadata
+            """,
+            (
+                artifact.artifact_id, ORG_ID, SITE_ID,
+                artifact.manifest["model_version"], artifact.manifest["data_version"],
+                artifact.manifest["definitions_version"], artifact_uri, manifest_hash,
+                artifact.manifest["coverage"]["start"], Jsonb(artifact.manifest),
+            ),
+        )
+    print({
+        "active_intraday_artifact": artifact.artifact_id,
+        "allocated_observations": len(artifact.allocated),
+        "calibration_days": len(artifact.calibrations),
+    })
 
 
 def seed() -> None:
@@ -223,13 +291,17 @@ def seed() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Varianz database administration")
-    parser.add_argument("command", choices=("status", "migrate", "seed", "sync-artifacts"))
+    parser.add_argument(
+        "command",
+        choices=("status", "migrate", "seed", "sync-artifacts", "sync-energy-cache"),
+    )
     args = parser.parse_args()
     {
         "status": status,
         "migrate": migrate,
         "seed": seed,
         "sync-artifacts": sync_artifacts,
+        "sync-energy-cache": sync_energy_cache,
     }[args.command]()
 
 

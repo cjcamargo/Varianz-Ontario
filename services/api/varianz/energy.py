@@ -6,8 +6,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+from .intraday_artifact import IntradayArtifactError, get_intraday_artifact
+from .metrics import ENERGY_MODEL_VERSION
 
-ENERGY_MODEL_VERSION = "energy-intraday-1.0.0"
 DEFAULT_TOU_WINDOWS = [
     {"label": "peak", "days": "all", "start": "07:00", "end": "23:00"}
 ]
@@ -94,7 +95,7 @@ def aggregate_intraday(intraday: pd.DataFrame, grain: str) -> pd.DataFrame:
     return hourly.reset_index()
 
 
-def intraday_energy_frame(
+def compute_intraday_energy_frame(
     operational: pd.DataFrame,
     resources: pd.DataFrame,
     cursor: datetime,
@@ -162,6 +163,137 @@ def intraday_energy_frame(
     return aggregate_intraday(result, grain)
 
 
+def build_intraday_materialization(
+    operational: pd.DataFrame,
+    resources: pd.DataFrame,
+    calibration_days: int = 7,
+) -> tuple[pd.DataFrame, dict[str, dict]]:
+    """Build immutable completed-day allocations and causal factors for every replay day."""
+    end = pd.to_datetime(operational.observed_at, utc=True).max() + pd.Timedelta(days=1)
+    complete = compute_intraday_energy_frame(
+        operational, resources, end.to_pydatetime(), grain="5min",
+        calibration_days=calibration_days,
+    )
+    allocated = complete[complete.quality != "provisional"].reset_index(drop=True)
+    allocated = allocated[[
+        "time", "heat_mj_m2", "elec_kwh_m2", "co2_kg_m2", "quality",
+    ]]
+
+    proxy = _proxy_frame(operational.copy())
+    proxy["day"] = _day_key(proxy.observed_at)
+    proxy_daily = proxy.groupby("day")[["heat_proxy", "elec_proxy", "co2_proxy"]].sum()
+    meters = resources.copy()
+    meters["day"] = _day_key(meters.observed_at)
+    meters = meters.drop_duplicates("day", keep="last").set_index("day")
+    meters["elec_total"] = meters.ElecHigh.fillna(0) + meters.ElecLow.fillna(0)
+    channels = {
+        "heat": ("heat_proxy", "Heat_cons"),
+        "elec": ("elec_proxy", "elec_total"),
+        "co2": ("co2_proxy", "CO2_cons"),
+    }
+    calibrations: dict[str, dict] = {}
+    for day in sorted(proxy.day.unique()):
+        factors = {
+            channel: _rolling_factor(
+                proxy_daily[proxy_code], meters[meter_code], day, calibration_days,
+            )
+            for channel, (proxy_code, meter_code) in channels.items()
+        }
+        calibrations[pd.Timestamp(day).date().isoformat()] = {
+            "as_of": pd.Timestamp(day).isoformat(),
+            "training_days": calibration_days,
+            "factors": factors,
+            "fit_r2": reconstruction_fit(operational, resources, pd.Timestamp(day).to_pydatetime()),
+        }
+    return allocated, calibrations
+
+
+def intraday_energy_frame(
+    operational: pd.DataFrame,
+    resources: pd.DataFrame,
+    cursor: datetime,
+    *,
+    grain: str = "5min",
+    calibration_days: int = 7,
+    tou_windows: list[dict] | None = None,
+    allocated_cache: pd.DataFrame | None = None,
+    calibrations: dict[str, dict] | None = None,
+    start: datetime | pd.Timestamp | None = None,
+    cache_source: str | None = None,
+) -> pd.DataFrame:
+    """Read completed allocations and transform only intervals without an official meter."""
+    artifact_id = None
+    if allocated_cache is None or calibrations is None:
+        try:
+            artifact = get_intraday_artifact()
+            allocated_cache = artifact.allocated
+            calibrations = artifact.calibrations
+            artifact_id = artifact.artifact_id
+        except IntradayArtifactError:
+            result = compute_intraday_energy_frame(
+                operational, resources, cursor, grain=grain,
+                calibration_days=calibration_days, tou_windows=tou_windows,
+            )
+            if start is not None:
+                result = result[pd.to_datetime(result.time, utc=True) >= pd.Timestamp(start)]
+            result.attrs["serving_source"] = "runtime_fallback"
+            return result
+
+    cursor_ts = pd.Timestamp(cursor)
+    if cursor_ts.tzinfo is None:
+        cursor_ts = cursor_ts.tz_localize("UTC")
+    current_day = cursor_ts.floor("D")
+    cache = allocated_cache
+    cache_times = pd.to_datetime(cache.time, utc=True)
+    history_mask = (cache_times <= cursor_ts) & (cache_times < current_day)
+    if start is not None:
+        history_mask &= cache_times >= pd.Timestamp(start)
+    history = cache.loc[history_mask].copy()
+    cached_days = set(_day_key(history.time).unique())
+
+    operational_times = pd.to_datetime(operational.observed_at, utc=True)
+    visible_mask = operational_times <= cursor_ts
+    if start is not None:
+        visible_mask &= operational_times >= pd.Timestamp(start)
+    visible = operational.loc[visible_mask].copy()
+    visible["day"] = _day_key(visible.observed_at)
+    unresolved = visible[(visible.day >= current_day) | (~visible.day.isin(cached_days))]
+    provisional_parts = []
+    if not unresolved.empty:
+        proxy = _proxy_frame(unresolved).sort_values("observed_at")
+        for day, part in proxy.groupby("day"):
+            calibration = calibrations.get(pd.Timestamp(day).date().isoformat())
+            if calibration is None:
+                fallback = compute_intraday_energy_frame(
+                    operational, resources, cursor, grain=grain,
+                    calibration_days=calibration_days, tou_windows=tou_windows,
+                )
+                if start is not None:
+                    fallback = fallback[
+                        pd.to_datetime(fallback.time, utc=True) >= pd.Timestamp(start)
+                    ]
+                fallback.attrs["serving_source"] = "runtime_fallback"
+                return fallback
+            provisional_parts.append(pd.DataFrame({
+                "time": pd.to_datetime(part.observed_at, utc=True),
+                "heat_mj_m2": calibration["factors"]["heat"] * part.heat_proxy,
+                "elec_kwh_m2": calibration["factors"]["elec"] * part.elec_proxy,
+                "co2_kg_m2": calibration["factors"]["co2"] * part.co2_proxy,
+                "quality": "provisional",
+            }))
+    result = pd.concat([history, *provisional_parts], ignore_index=True).sort_values("time")
+    peak = tou_peak_mask(result.time, tou_windows)
+    result["elec_peak_kwh_m2"] = result.elec_kwh_m2.where(peak, 0.0)
+    result["elec_offpeak_kwh_m2"] = result.elec_kwh_m2.where(~peak, 0.0)
+    result["cost_cad_m2"] = np.nan
+    result = aggregate_intraday(result, grain)
+    result.attrs["serving_source"] = cache_source or (
+        "materialized_cache" if artifact_id is None else "versioned_artifact"
+    )
+    result.attrs["artifact_id"] = artifact_id
+    return result
+
+
 def apply_intraday_cost(intraday: pd.DataFrame, tariff: dict | None) -> pd.DataFrame:
     result = intraday.copy()
     if not tariff or result.empty:
@@ -204,12 +336,27 @@ def reconstruction_metadata(
     resources: pd.DataFrame,
     cursor: datetime,
     calibration_days: int = 7,
+    calibrations: dict[str, dict] | None = None,
+    cache_source: str | None = None,
 ) -> dict:
+    artifact_id = None
+    if calibrations is None:
+        try:
+            artifact = get_intraday_artifact()
+            calibrations = artifact.calibrations
+            artifact_id = artifact.artifact_id
+        except IntradayArtifactError:
+            calibrations = {}
+    calibration = calibrations.get(pd.Timestamp(cursor).date().isoformat())
     return {
         "method": "meter-conserving disaggregation",
         "calibration_days": calibration_days,
         "model_version": ENERGY_MODEL_VERSION,
-        "fit_r2": reconstruction_fit(operational, resources, cursor),
+        "fit_r2": calibration["fit_r2"] if calibration else reconstruction_fit(operational, resources, cursor),
+        "serving_source": (cache_source or "materialized_cache") if calibration and artifact_id is None else (
+            "versioned_artifact" if calibration else "runtime_fallback"
+        ),
+        "artifact_id": artifact_id,
         "evidence_ids": [
             _evidence("intraday:heat", cursor),
             _evidence("intraday:electricity", cursor),
@@ -254,7 +401,11 @@ def efficiency_indicators(
         return {"lighting_efficacy": empty, "heat_degree_intensity": empty, "peak_share": empty, "simultaneity_index": empty}
     current_day = pd.Timestamp(cursor).floor("D")
     day_energy = intraday[_day_key(intraday.time) == current_day]
-    op = operational[pd.to_datetime(operational.observed_at, utc=True) <= pd.Timestamp(cursor)].copy()
+    operational_times = pd.to_datetime(operational.observed_at, utc=True)
+    history_start = current_day - pd.Timedelta(days=8)
+    op = operational[
+        (operational_times <= pd.Timestamp(cursor)) & (operational_times >= history_start)
+    ].copy()
     op["day"] = _day_key(op.observed_at)
     op_day = op[_day_key(op.observed_at) == current_day]
     step_hours = 5 / 60

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 DEFINITIONS_VERSION = "2.2.0"
 DATA_VERSION = "wageningen-reference-2020-v1"
 MODEL_VERSION = "energy-baseline-2.1.0"
+ENERGY_MODEL_VERSION = "energy-intraday-1.1.0"
 
 
 @dataclass(frozen=True)

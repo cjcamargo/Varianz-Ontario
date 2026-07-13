@@ -1,0 +1,21 @@
+{
+  "artifact_id": "intraday-energy-1.1.0-17ef6e3e95c6",
+  "artifact_kind": "intraday_energy_materialization",
+  "coverage": {
+    "allocated_observations": 47808,
+    "calibration_days": 167,
+    "end": "2020-05-29T23:55:00.191999714+00:00",
+    "start": "2019-12-16T00:00:00+00:00"
+  },
+  "data_version": "wageningen-reference-2020-v1",
+  "definitions_version": "2.2.0",
+  "files": {
+    "allocated.csv.gz": "17ef6e3e95c6c0dabb90404d846b5aee17045b5b5291ee146213ac1e11c89a90",
+    "calibrations.json": "f018db54cc5c72b0cd94fd7b0d3e0cc8897166a5daccdaacdad67cfb35467414",
+    "model-card.md": "d760aec4033e32013ac1897efeeae7d45de772c3e40f8ded4f48213a0f02c3a7"
+  },
+  "future_safe": true,
+  "model_version": "energy-intraday-1.1.0",
+  "schema_version": 1,
+  "source_dataset_sha256": "f34cf4917586d8fbde54d8f6c911a4b22181341077f210654e357e5184576753"
+}
