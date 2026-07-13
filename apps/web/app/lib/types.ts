@@ -18,6 +18,12 @@ export type Snapshot = {
   baseline: Record<string, any>; anomalies: Anomaly[]; climate_series: Point[];
   resource_series: Point[]; tariff:{configured:boolean;currency:string|null};
   metric_definitions: Record<string,{label:string;unit:string;source:string}>;
+  intraday?:{
+    grain:"5min"|"1h"; series:Point[];
+    reconstruction:{method:string;calibration_days:number;model_version:string;fit_r2:Record<string,number|null>;evidence_ids:string[]};
+    cost_configured:boolean;currency:string|null;
+  };
+  efficiency?:Record<string,any>;
 };
 
 export type AssistantResult = {

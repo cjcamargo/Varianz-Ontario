@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 from uuid import UUID
 
 import httpx
+import pandas as pd
 import psycopg
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,14 @@ from .analytics import operational_snapshot
 from .auth import Principal, current_principal
 from .config import settings
 from .dataset import quality_report
+from .energy import (
+    aggregate_intraday,
+    apply_intraday_cost,
+    efficiency_events,
+    efficiency_indicators,
+    intraday_energy_frame,
+    reconstruction_metadata,
+)
 from .replay import ReplaySession
 from .store import ORG_ID, SITE_ID, get_operational_data
 from .tariffs import get_tariff, put_tariff
@@ -57,6 +66,13 @@ class AgentQuestion(BaseModel):
     anomaly_id: str | None = None
 
 
+class TouWindow(BaseModel):
+    label: str = Field(pattern="^(peak|offpeak)$")
+    days: str = Field(pattern="^(all|mon-fri|sat-sun|weekend)$")
+    start: str = Field(pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
+    end: str = Field(pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
+
+
 class TariffProfile(BaseModel):
     currency: str = Field(default="CAD", pattern="^[A-Z]{3}$")
     effective_from: date
@@ -66,6 +82,8 @@ class TariffProfile(BaseModel):
     co2_per_kg: float = Field(ge=0)
     water_per_m3: float = Field(ge=0)
     source: str = Field(min_length=3, max_length=300)
+    tou_windows: list[TouWindow] = Field(default_factory=list, min_length=1)
+    preset: str | None = Field(default=None, max_length=80)
 
 
 def _data():
@@ -73,6 +91,11 @@ def _data():
         return get_operational_data(settings)
     except (psycopg.Error, RuntimeError) as exc:
         raise HTTPException(503, "operational_data_unavailable") from exc
+
+
+def _validated_tariff(profile: dict | None) -> dict | None:
+    """Interval economics require both sourced rates and a reviewed ToU schedule."""
+    return profile if profile and profile.get("tou_windows") else None
 
 
 def _session(session_id: UUID, principal: Principal) -> ReplaySession:
@@ -89,7 +112,7 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
     data = _data()
     cursor = session.effective_cursor()
     try:
-        tariff = get_tariff(settings.database_url, SITE_ID, cursor.date())
+        tariff = _validated_tariff(get_tariff(settings.database_url, SITE_ID, cursor.date()))
     except psycopg.Error:
         tariff = None
     try:
@@ -104,6 +127,17 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
         )
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
+    operational_events = efficiency_events(
+        data.operational, cursor, tariff.get("tou_windows") if tariff else None
+    )
+    snapshot["anomalies"] = sorted(
+        [*snapshot["anomalies"], *operational_events],
+        key=lambda item: (not item.get("active", False), item["started_at"]),
+    )[:40]
+    snapshot["evidence_ids"] = list(dict.fromkeys([
+        *snapshot["evidence_ids"],
+        *(evidence for item in operational_events for evidence in item["evidence_ids"]),
+    ]))
     return {
         "session_id": session.id,
         "revision": session.revision,
@@ -128,7 +162,7 @@ def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
     selected_anomalies = [item for item in snapshot["anomalies"] if item.get("active")][:5]
     if focus and all(item["id"] != focus["id"] for item in selected_anomalies):
         selected_anomalies.insert(0, focus)
-    return {
+    bundle = {
         key: snapshot[key]
         for key in [
             "session_id",
@@ -159,6 +193,10 @@ def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
             for code, definition in snapshot["metric_definitions"].items()
         },
     }
+    for optional in ["efficiency", "reconstruction"]:
+        if optional in snapshot:
+            bundle[optional] = snapshot[optional]
+    return bundle
 
 
 @api.get("/health")
@@ -226,10 +264,43 @@ def overview(
 def energy_resources(
     session_id: UUID,
     window: str = Query("7d", pattern="^(1h|6h|24h|7d|all)$"),
+    grain: str = Query("1h", pattern="^(5min|1h)$"),
     principal: Principal = Depends(current_principal),
 ):
     payload = _snapshot(session_id, window, principal)
-    return {
+    data = _data()
+    cursor = pd.Timestamp(payload["cursor"])
+    try:
+        tariff = _validated_tariff(get_tariff(settings.database_url, SITE_ID, cursor.date()))
+    except psycopg.Error:
+        tariff = None
+    tou_windows = tariff.get("tou_windows") if tariff else None
+    five_min_intraday = intraday_energy_frame(
+        data.operational, data.resources, cursor.to_pydatetime(), grain="5min",
+        tou_windows=tou_windows,
+    )
+    intraday = aggregate_intraday(five_min_intraday, grain)
+    intraday = apply_intraday_cost(intraday, tariff)
+    deltas = {
+        "1h": pd.Timedelta(hours=1), "6h": pd.Timedelta(hours=6),
+        "24h": pd.Timedelta(hours=24), "7d": pd.Timedelta(days=7),
+    }
+    if window in deltas:
+        intraday = intraday[pd.to_datetime(intraday.time, utc=True) >= cursor - deltas[window]]
+    if len(intraday) > 2500:
+        intraday = intraday.iloc[:: max(1, len(intraday) // 2500)]
+    records = intraday.astype(object).where(pd.notna(intraday), None).to_dict("records")
+    reconstruction = reconstruction_metadata(
+        data.operational, data.resources, cursor.to_pydatetime()
+    )
+    efficiency = efficiency_indicators(
+        five_min_intraday,
+        data.operational, data.resources, cursor.to_pydatetime(), tariff,
+    )
+    efficiency_anomalies = [
+        item for item in payload["anomalies"] if item.get("category") == "efficiency"
+    ]
+    base = {
         key: payload[key]
         for key in [
             "session_id", "revision", "cursor", "window", "site", "data_version",
@@ -237,6 +308,19 @@ def energy_resources(
             "baseline", "resource_series", "anomalies", "tariff", "metric_definitions",
         ]
     }
+    base["evidence_ids"] = list(dict.fromkeys([
+        *base["evidence_ids"], *reconstruction["evidence_ids"],
+        *(evidence for item in efficiency_anomalies for evidence in item["evidence_ids"]),
+    ]))
+    base["intraday"] = {
+        "grain": grain,
+        "series": records,
+        "reconstruction": reconstruction,
+        "cost_configured": bool(tariff),
+        "currency": tariff.get("currency") if tariff else None,
+    }
+    base["efficiency"] = efficiency
+    return base
 
 
 @api.get("/replay-sessions/{session_id}/climate")
@@ -301,7 +385,24 @@ def assistant_message(
     request: AgentQuestion,
     principal: Principal = Depends(current_principal),
 ):
-    evidence = _agent_evidence(_snapshot(session_id, "24h", principal), request.anomaly_id)
+    snapshot = _snapshot(session_id, "24h", principal)
+    data = _data()
+    cursor = pd.Timestamp(snapshot["cursor"])
+    try:
+        tariff = _validated_tariff(get_tariff(settings.database_url, SITE_ID, cursor.date()))
+    except psycopg.Error:
+        tariff = None
+    intraday = intraday_energy_frame(
+        data.operational, data.resources, cursor.to_pydatetime(), grain="5min",
+        tou_windows=tariff.get("tou_windows") if tariff else None,
+    )
+    snapshot["efficiency"] = efficiency_indicators(
+        intraday, data.operational, data.resources, cursor.to_pydatetime(), tariff,
+    )
+    snapshot["reconstruction"] = reconstruction_metadata(
+        data.operational, data.resources, cursor.to_pydatetime()
+    )
+    evidence = _agent_evidence(snapshot, request.anomaly_id)
     history = assistant_histories.setdefault(session_id, [])
     try:
         question = request.question.strip()

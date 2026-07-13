@@ -14,6 +14,30 @@ Each metric declares ID, label, formula, unit, boundary, source, grain, aggregat
 
 Initial daily metrics: heat/electricity/CO₂/irrigation/drain per m²; total energy; drain ratio; internal temperature/RH/humidity-deficit compliance minutes; setpoint deviation; peak/off-peak electricity share; anomaly minutes. Yield and economic values are explicitly contextual.
 
+## Intraday energy disaggregation and EnPIs
+
+Model `energy-intraday-1.0.0` disaggregates the authoritative daily meters to five-minute intervals.
+For each completed day, heat is distributed by positive pipe-to-air temperature excess,
+electricity by lamp PAR contribution (assimilation-light state is the fallback), and CO₂ by the
+dosing-rate signal. Each interval is the daily meter total multiplied by its share of the daily
+proxy, so daily conservation is exact. A zero proxy uses uniform allocation and is tagged
+`imputed`.
+
+The current replay day never uses its final daily meter. Its intervals use the median
+meter-to-proxy factor from the previous seven completed days (minimum three) and are tagged
+`provisional`. Hourly values are sums of the five-minute reconstruction. The validated reference
+dataset yields informational daily proxy fit R² of 0.913 heat, 0.998 electricity and 1.000 CO₂;
+the meter-conserving allocation remains authoritative regardless of proxy fit.
+
+Operational EnPIs report lighting energy per delivered PAR, heat per heating degree-hour,
+configured peak-period electricity share and observed energy in counterproductive simultaneous
+states. Expected values use trailing completed-day medians when sufficient evidence exists.
+Persistent efficiency events require at least three five-minute observations and describe only
+the observed state. They do not estimate causality, recoverable energy or savings.
+
+ToU classification uses versioned site-local windows. Rates are never supplied by a preset, and
+cost is returned only when currency, rates, effective date, schedule and source are configured.
+
 ## Models
 
 - EnB: daily Elastic Net with heating-degree/external temperature, radiation, lighting duration and crop-age candidates. Feature inclusion requires domain rationale, stable availability, temporal cross-validation and residual diagnostics. GAM is a challenger where nonlinearity materially improves validation.

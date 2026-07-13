@@ -17,6 +17,7 @@ type DashboardProps={accessToken:string;userEmail:string;onSignOut:()=>void};
 export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardProps){
   const [view,setView]=useState<View>("overview"),[windowKey,setWindowKey]=useState<WindowKey>("24h");
   const [data,setData]=useState<Snapshot|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true);
+  const [energyData,setEnergyData]=useState<Snapshot|null>(null),[energyGrain,setEnergyGrain]=useState<"5min"|"1h">("1h");
   const [question,setQuestion]=useState("What requires operator attention at this replay cursor?");
   const [messages,setMessages]=useState<ChatMessage[]>([]),[asking,setAsking]=useState(false),[focus,setFocus]=useState<string|null>(null);
   const requestRef=useRef<AbortController|null>(null);
@@ -49,6 +50,16 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
     void create();
   },[accessToken,create]);
   useEffect(()=>{if(!data?.playing)return;const timer=setInterval(()=>refresh(data.session_id),2000);return()=>clearInterval(timer)},[data?.playing,data?.session_id,refresh]);
+  useEffect(()=>{
+    if(view!=="energy"||!data)return;
+    setEnergyData(null);
+    const controller=new AbortController();
+    apiFetch(`/replay-sessions/${data.session_id}/energy-resources?window=${windowKey}&grain=${energyGrain}`,{signal:controller.signal})
+      .then(response=>{if(!response.ok)throw new Error("Energy analytics unavailable");return response.json()})
+      .then(setEnergyData)
+      .catch(event=>{if(event?.name!=="AbortError")setError(event instanceof Error?event.message:"Energy analytics unavailable")});
+    return()=>controller.abort();
+  },[apiFetch,data?.cursor,data?.session_id,energyGrain,view,windowKey]);
 
   async function mutate(action:string,value?:number|string){
     if(!data||mutationInFlightRef.current)return;
@@ -97,7 +108,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       {error?<section className="error-banner">{error}<button onClick={()=>setError("")}>×</button></section>:null}
       {loading&&!data?<div className="loading"><span/>Building point-in-time analytics…</div>:null}
       {data&&view==="overview"?<OverviewView data={data} k={k} baseline={baseline} top={top} setView={setView} ask={ask}/>:null}
-      {data&&view==="energy"?<EnergyView data={data} k={k} baseline={baseline} ask={ask}/>:null}
+      {data&&view==="energy"?<EnergyView data={energyData||data} k={(energyData||data).kpis} baseline={(energyData||data).baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain}/>:null}
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}
       {data&&view==="anomalies"?<AnomaliesView data={data} focus={focus} setFocus={setFocus} ask={ask}/>:null}
       {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} ask={ask}/>:null}

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-DEFINITIONS_VERSION = "2.1.0"
+DEFINITIONS_VERSION = "2.2.0"
 DATA_VERSION = "wageningen-reference-2020-v1"
 MODEL_VERSION = "energy-baseline-2.0.0"
 
@@ -55,6 +55,8 @@ METRICS = {
         metric("scr_enrg_vip", "Realized energy curtain setpoint", "control_signal", "%"),
         metric("Cum_irr", "Cumulative daily irrigation", "water", "L/m2/day", aggregation="max"),
         metric("Tot_PAR", "Total inside PAR", "irradiance", "umol/m2/s"),
+        metric("Tot_PAR_Lamps", "Lamp PAR contribution", "irradiance", "umol/m2/s"),
+        metric("co2_dos", "Carbon dioxide dosing rate", "resource_rate", "kg/ha/hour"),
         metric("Tout", "Outdoor temperature", "temperature", "degC", source="Weather"),
         metric("Rhout", "Outdoor relative humidity", "relative_humidity", "%", source="Weather"),
         metric("Iglob", "Global solar radiation", "irradiance", "W/m2", source="Weather"),

@@ -4,6 +4,7 @@ from datetime import date
 from uuid import UUID
 
 import psycopg
+from psycopg.types.json import Jsonb
 
 
 FIELDS = (
@@ -23,7 +24,7 @@ def get_tariff(database_url: str | None, site_id: UUID, cursor_date: date) -> di
             """
             select id, currency, effective_from, electricity_peak_per_kwh,
                    electricity_offpeak_per_kwh, heat_per_mj, co2_per_kg,
-                   water_per_m3, source
+                   water_per_m3, source, tou_windows, preset
             from app.tariff_profile
             where site_id=%s and effective_from<=%s
             order by effective_from desc limit 1
@@ -33,7 +34,7 @@ def get_tariff(database_url: str | None, site_id: UUID, cursor_date: date) -> di
     if not row:
         return None
     keys = (
-        "id", "currency", "effective_from", *FIELDS, "source"
+        "id", "currency", "effective_from", *FIELDS, "source", "tou_windows", "preset"
     )
     result = dict(zip(keys, row))
     for field in FIELDS:
@@ -50,8 +51,8 @@ def put_tariff(database_url: str, organization_id: UUID, site_id: UUID, tariff: 
             insert into app.tariff_profile
                 (organization_id, site_id, currency, effective_from,
                  electricity_peak_per_kwh, electricity_offpeak_per_kwh,
-                 heat_per_mj, co2_per_kg, water_per_m3, source)
-            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                 heat_per_mj, co2_per_kg, water_per_m3, source, tou_windows, preset)
+            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             on conflict (site_id, effective_from) do update set
                 currency=excluded.currency,
                 electricity_peak_per_kwh=excluded.electricity_peak_per_kwh,
@@ -59,15 +60,16 @@ def put_tariff(database_url: str, organization_id: UUID, site_id: UUID, tariff: 
                 heat_per_mj=excluded.heat_per_mj,
                 co2_per_kg=excluded.co2_per_kg,
                 water_per_m3=excluded.water_per_m3,
-                source=excluded.source
+                source=excluded.source,
+                tou_windows=excluded.tou_windows,
+                preset=excluded.preset
             returning id
             """,
             (
                 organization_id, site_id, tariff["currency"], tariff["effective_from"],
                 tariff["electricity_peak_per_kwh"], tariff["electricity_offpeak_per_kwh"],
                 tariff["heat_per_mj"], tariff["co2_per_kg"], tariff["water_per_m3"],
-                tariff["source"],
+                tariff["source"], Jsonb(tariff["tou_windows"]), tariff.get("preset"),
             ),
         ).fetchone()
     return {"id": str(row[0]), **tariff}
-

@@ -115,7 +115,7 @@ def seed() -> None:
                 """,
                 (
                     metric_ids[code], code, definition.label, definition.dimension,
-                    definition.unit, 2, definition.grain, definition.aggregation,
+                    definition.unit, 3, definition.grain, definition.aggregation,
                     definition.source, definition.quality_rule, "Varianz Analytics",
                 ),
             )

@@ -10,12 +10,23 @@ from pathlib import Path
 from unittest.mock import patch
 from uuid import UUID, uuid4
 
+import numpy as np
+import pandas as pd
+
 sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
 from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
 from varianz.agent import RESPONSE_SCHEMA, _conversation_text, _evidence_json
 from varianz.auth import DEMO_USER_ID, verify_supabase_access_token, verify_supabase_jwt
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
+from varianz.energy import (
+    apply_intraday_cost,
+    efficiency_events,
+    efficiency_indicators,
+    intraday_energy_frame,
+    reconstruction_metadata,
+    tou_peak_mask,
+)
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
 from varianz.main import _agent_evidence, app
@@ -117,7 +128,7 @@ class DatasetTests(unittest.TestCase):
         self.assertTrue(
             all(point["time"] <= cursor.isoformat() for point in snapshot["climate_series"])
         )
-        self.assertEqual(snapshot["definitions_version"], "2.1.0")
+        self.assertEqual(snapshot["definitions_version"], "2.2.0")
         self.assertTrue(snapshot["quality"]["future_safe"])
 
     def test_operational_kpis_have_units_and_reconcile(self):
@@ -148,6 +159,78 @@ class DatasetTests(unittest.TestCase):
         result = energy_baseline(ZIP, datetime(2020, 5, 20, tzinfo=timezone.utc))
         self.assertEqual(result["status"], "ready")
         self.assertGreaterEqual(result["training_days"], 30)
+
+
+class IntradayEnergyTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.operational = load_replay_frame(ZIP)
+        cls.resources = read_source(ZIP, "Reference/Resources.csv")
+        cls.cursor = datetime(2020, 5, 20, 12, tzinfo=timezone.utc)
+        cls.five_min = intraday_energy_frame(
+            cls.operational, cls.resources, cls.cursor, grain="5min"
+        )
+
+    def test_completed_days_conserve_authoritative_meters(self):
+        actual = self.five_min.copy()
+        actual["day"] = pd.to_datetime(actual.time, utc=True).dt.floor("D")
+        totals = actual[actual.day < pd.Timestamp(self.cursor).floor("D")].groupby("day").agg(
+            heat=("heat_mj_m2", "sum"), electricity=("elec_kwh_m2", "sum"), co2=("co2_kg_m2", "sum")
+        )
+        meter = self.resources.copy()
+        meter["day"] = pd.to_datetime(meter.observed_at, utc=True).dt.floor("D")
+        meter = meter.set_index("day")
+        meter["meter_electricity"] = meter.ElecHigh.fillna(0) + meter.ElecLow.fillna(0)
+        joined = totals.join(meter[["Heat_cons", "meter_electricity", "CO2_cons"]], how="inner")
+        np.testing.assert_allclose(joined.heat, joined.Heat_cons, rtol=1e-6, atol=1e-9)
+        np.testing.assert_allclose(joined.electricity, joined.meter_electricity, rtol=1e-6, atol=1e-9)
+        np.testing.assert_allclose(joined.co2, joined.CO2_cons, rtol=1e-6, atol=1e-9, equal_nan=True)
+
+    def test_current_day_is_future_safe_and_meter_independent(self):
+        self.assertLessEqual(pd.to_datetime(self.five_min.time, utc=True).max(), pd.Timestamp(self.cursor))
+        current = pd.to_datetime(self.five_min.time, utc=True).dt.floor("D") == pd.Timestamp(self.cursor).floor("D")
+        self.assertTrue(current.any())
+        self.assertEqual(set(self.five_min.loc[current, "quality"]), {"provisional"})
+        altered = self.resources.copy()
+        day = pd.to_datetime(altered.observed_at, utc=True).dt.floor("D") == pd.Timestamp(self.cursor).floor("D")
+        altered.loc[day, ["Heat_cons", "ElecHigh", "ElecLow", "CO2_cons"]] = 999999
+        reconstructed = intraday_energy_frame(self.operational, altered, self.cursor, grain="5min")
+        columns = ["heat_mj_m2", "elec_kwh_m2", "co2_kg_m2"]
+        np.testing.assert_allclose(self.five_min.loc[current, columns], reconstructed.loc[current, columns])
+
+    def test_proxy_fidelity_meets_acceptance_thresholds(self):
+        fit = reconstruction_metadata(self.operational, self.resources, self.cursor)["fit_r2"]
+        self.assertGreaterEqual(fit["heat"], 0.90)
+        self.assertGreaterEqual(fit["elec"], 0.97)
+        self.assertGreaterEqual(fit["co2"], 0.99)
+
+    def test_hourly_grain_conserves_five_minute_total(self):
+        hourly = intraday_energy_frame(self.operational, self.resources, self.cursor, grain="1h")
+        for column in ["heat_mj_m2", "elec_kwh_m2", "co2_kg_m2"]:
+            self.assertAlmostEqual(float(hourly[column].sum()), float(self.five_min[column].sum()), places=8)
+
+    def test_tou_boundaries_and_cost_guardrail(self):
+        times = pd.Series(pd.to_datetime(["2020-01-06T11:59:00Z", "2020-01-06T12:00:00Z", "2020-01-06T17:00:00Z"]))
+        windows = [{"label":"peak","days":"mon-fri","start":"07:00","end":"12:00"}]
+        self.assertEqual(tou_peak_mask(times, windows, "UTC").tolist(), [True, False, False])
+        self.assertTrue(apply_intraday_cost(self.five_min.head(2), None).cost_cad_m2.isna().all())
+
+    def test_enpis_and_events_are_evidenced_and_non_prescriptive(self):
+        indicators = efficiency_indicators(
+            self.five_min, self.operational, self.resources, self.cursor,
+            {"electricity_peak_per_kwh":.2,"electricity_offpeak_per_kwh":.1,"heat_per_mj":.01,"co2_per_kg":.1,"tou_windows":[]},
+        )
+        for indicator in indicators.values():
+            if not isinstance(indicator, dict) or "status" not in indicator:
+                continue
+            self.assertTrue(indicator["unit"])
+            self.assertTrue(indicator["evidence_ids"])
+        times = pd.date_range("2020-05-20T10:00:00Z", periods=6, freq="5min")
+        synthetic = pd.DataFrame({"observed_at":times,"PipeLow":35,"PipeGrow":30,"Tair":20,"VentLee":25,"Tot_PAR_Lamps":0,"AssimLight":0,"co2_dos":0,"Iglob":50,"Tout":8,"EnScr":50})
+        events = efficiency_events(synthetic, times[-1].to_pydatetime())
+        self.assertIn("heating_against_ventilation", {event["code"] for event in events})
+        forbidden = ("save", "savings", "reduce cost by")
+        self.assertFalse(any(term in event["message"].lower() for event in events for term in forbidden))
 
 
 class ReplayTests(unittest.TestCase):
@@ -216,6 +299,21 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(
             client.patch(url, json={"action": "pause", "expected_revision": 0}).status_code, 409
         )
+
+    def test_energy_endpoint_exposes_intraday_contract(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        response = client.get(
+            f"/api/v1/replay-sessions/{session['id']}/energy-resources?window=24h&grain=1h"
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["intraday"]["grain"], "1h")
+        self.assertEqual(
+            payload["intraday"]["reconstruction"]["model_version"],
+            "energy-intraday-1.0.0",
+        )
+        self.assertIn("efficiency", payload)
 
     def test_agent_fails_closed_without_server_key(self):
         client = TestClient(app)
