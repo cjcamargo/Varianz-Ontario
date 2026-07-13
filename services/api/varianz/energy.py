@@ -226,6 +226,7 @@ def _indicator(
     *,
     expected: float | None = None,
     confidence: str = "medium",
+    unavailable_reason: str | None = None,
 ) -> dict:
     variance = None if value is None or expected in {None, 0} else round((value - expected) / expected * 100, 1)
     return {
@@ -235,6 +236,7 @@ def _indicator(
         "expected": None if expected is None else round(float(expected), 4),
         "variance_pct": variance,
         "confidence": confidence,
+        "unavailable_reason": unavailable_reason if value is None else None,
         "relevant_variables": relevant_variables,
         "evidence_ids": [_evidence("enpi:" + ":".join(relevant_variables), cursor)],
     }
@@ -298,7 +300,12 @@ def efficiency_indicators(
         "model_version": ENERGY_MODEL_VERSION,
         "lighting_efficacy": _indicator(lighting, "kWh/mol PAR", cursor, ["Lamp PAR contribution", "Electricity consumption"], expected=lighting_expected),
         "heat_degree_intensity": _indicator(heat_degree, "MJ/m2 per degC-hour", cursor, ["Heating energy", "Realized heating setpoint", "Outside temperature"], expected=heat_expected),
-        "peak_share": _indicator(peak_share, "%", cursor, ["Electricity consumption", "Ontario time-of-use schedule"], expected=peak_expected, confidence="high"),
+        "peak_share": _indicator(
+            peak_share, "%", cursor,
+            ["Electricity consumption", "Ontario time-of-use schedule"],
+            expected=peak_expected, confidence="high",
+            unavailable_reason="Configure a sourced Ontario time-of-use schedule in Settings.",
+        ),
         "simultaneity_index": _indicator(simultaneity, "% observed in counterproductive states", cursor, ["Heating energy", "Leeward vents opening", "Lamp PAR contribution", "Solar radiation"]),
     }
 

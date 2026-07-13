@@ -137,7 +137,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       {error?<section className="error-banner">{error}<button onClick={()=>setError("")}>×</button></section>:null}
       {loading&&!data?<div className="loading"><span/>{startupMessage}</div>:null}
       {data&&view==="overview"?<OverviewView data={data} k={k} baseline={baseline} top={top} setView={setView} ask={ask}/>:null}
-      {data&&view==="energy"?(visibleEnergy?<EnergyView data={visibleEnergy} k={visibleEnergy.kpis} baseline={visibleEnergy.baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain}/>:<div className="loading"><span/>Loading energy analytics…</div>):null}
+      {data&&view==="energy"?(visibleEnergy?<EnergyView data={visibleEnergy} k={visibleEnergy.kpis} baseline={visibleEnergy.baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain} openSettings={()=>setView("settings")}/>:<div className="loading"><span/>Loading energy analytics…</div>):null}
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}
       {data&&view==="anomalies"?<AnomaliesView data={data} focus={focus} setFocus={setFocus} ask={ask}/>:null}
       {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} ask={ask}/>:null}

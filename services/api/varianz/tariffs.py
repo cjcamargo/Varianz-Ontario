@@ -38,7 +38,7 @@ def get_tariff(database_url: str | None, site_id: UUID, cursor_date: date) -> di
     )
     result = dict(zip(keys, row))
     for field in FIELDS:
-        result[field] = float(result[field])
+        result[field] = None if result[field] is None else float(result[field])
     result["id"] = str(result["id"])
     result["effective_from"] = result["effective_from"].isoformat()
     return result

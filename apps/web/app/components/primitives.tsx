@@ -13,7 +13,7 @@ export function LineChart({points,series,bands,height=360}:{points:Point[];serie
   const y=(v:number,axis=0)=>pad.top+innerH-(v-(axis?lo2:lo))/Math.max((axis?hi2:hi)- (axis?lo2:lo),.001)*innerH;
   const x=(i:number)=>pad.left+i/Math.max(points.length-1,1)*innerW;
   const ticks=Array.from({length:5},(_,i)=>lo+(hi-lo)*i/4);
-  const path=(s:SeriesSpec)=>points.map((p,i)=>typeof p[s.key]==="number"?`${i?"L":"M"}${x(i).toFixed(1)},${y(p[s.key] as number,s.axis||0).toFixed(1)}`:"").join(" ");
+  const path=(s:SeriesSpec)=>{let drawing=false;return points.map((p,i)=>{const value=p[s.key];if(typeof value!=="number"){drawing=false;return ""}const command=drawing?"L":"M";drawing=true;return `${command}${x(i).toFixed(1)},${y(value,s.axis||0).toFixed(1)}`}).join(" ")};
   if(!points.length)return <div className="no-data">No observations in this replay window.</div>;
   return <div className="line-chart"><div className="chart-legend">{series.map(s=><span key={s.key}><i style={{background:s.color}}/>{s.name}</span>)}</div><svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={series.map(s=>s.name).join(" compared with ")}>
     {bands?<rect x={pad.left} y={y(bands[1])} width={innerW} height={Math.max(0,y(bands[0])-y(bands[1]))} fill="#63e6a510"/>:null}

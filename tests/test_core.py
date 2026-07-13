@@ -29,7 +29,7 @@ from varianz.energy import (
 )
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
-from varianz.main import _agent_evidence, app
+from varianz.main import _agent_evidence, _cost_tariff, _schedule_tariff, app
 from varianz.config import settings
 
 ZIP = Path(__file__).parents[1] / "Wageningen MVP Dataset.zip"
@@ -225,6 +225,11 @@ class IntradayEnergyTests(unittest.TestCase):
                 continue
             self.assertTrue(indicator["unit"])
             self.assertTrue(indicator["evidence_ids"])
+        without_tariff = efficiency_indicators(
+            self.five_min, self.operational, self.resources, self.cursor, None,
+        )["peak_share"]
+        self.assertEqual(without_tariff["status"], "insufficient_data")
+        self.assertIn("time-of-use schedule", without_tariff["unavailable_reason"])
         times = pd.date_range("2020-05-20T10:00:00Z", periods=6, freq="5min")
         synthetic = pd.DataFrame({"observed_at":times,"PipeLow":35,"PipeGrow":30,"Tair":20,"VentLee":25,"Tot_PAR_Lamps":0,"AssimLight":0,"co2_dos":0,"Iglob":50,"Tout":8,"EnScr":50})
         events = efficiency_events(synthetic, times[-1].to_pydatetime())
@@ -321,7 +326,27 @@ class ApiTests(unittest.TestCase):
             payload["intraday"]["reconstruction"]["model_version"],
             "energy-intraday-1.0.0",
         )
+        self.assertTrue(
+            any(point["quality"] == "provisional" for point in payload["intraday"]["series"])
+        )
+        self.assertTrue(
+            all(point["time"] <= payload["cursor"] for point in payload["intraday"]["series"])
+        )
         self.assertIn("efficiency", payload)
+
+    def test_tou_schedule_enables_peak_share_without_enabling_cost(self):
+        schedule_only = {
+            "tou_windows": [{"label":"peak","days":"mon-fri","start":"07:00","end":"11:00"}],
+            "electricity_peak_per_kwh": None,
+            "electricity_offpeak_per_kwh": None,
+            "heat_per_mj": None, "co2_per_kg": None, "water_per_m3": None,
+        }
+        self.assertIs(_schedule_tariff(schedule_only), schedule_only)
+        self.assertIsNone(_cost_tariff(schedule_only))
+        complete = {**schedule_only, "electricity_peak_per_kwh": 0.2,
+                    "electricity_offpeak_per_kwh": 0.1, "heat_per_mj": 0.01,
+                    "co2_per_kg": 0.1, "water_per_m3": 0.01}
+        self.assertIs(_cost_tariff(complete), complete)
 
     def test_agent_fails_closed_without_server_key(self):
         client = TestClient(app)

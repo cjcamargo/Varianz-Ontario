@@ -105,11 +105,11 @@ class TouWindow(BaseModel):
 class TariffProfile(BaseModel):
     currency: str = Field(default="CAD", pattern="^[A-Z]{3}$")
     effective_from: date
-    electricity_peak_per_kwh: float = Field(ge=0)
-    electricity_offpeak_per_kwh: float = Field(ge=0)
-    heat_per_mj: float = Field(ge=0)
-    co2_per_kg: float = Field(ge=0)
-    water_per_m3: float = Field(ge=0)
+    electricity_peak_per_kwh: float | None = Field(default=None, ge=0)
+    electricity_offpeak_per_kwh: float | None = Field(default=None, ge=0)
+    heat_per_mj: float | None = Field(default=None, ge=0)
+    co2_per_kg: float | None = Field(default=None, ge=0)
+    water_per_m3: float | None = Field(default=None, ge=0)
     source: str = Field(min_length=3, max_length=300)
     tou_windows: list[TouWindow] = Field(default_factory=list, min_length=1)
     preset: str | None = Field(default=None, max_length=80)
@@ -125,9 +125,19 @@ def _data():
         raise HTTPException(503, "operational_data_unavailable") from exc
 
 
-def _validated_tariff(profile: dict | None) -> dict | None:
-    """Interval economics require both sourced rates and a reviewed ToU schedule."""
+def _schedule_tariff(profile: dict | None) -> dict | None:
+    """Peak-period analytics require a sourced and reviewed ToU schedule."""
     return profile if profile and profile.get("tou_windows") else None
+
+
+def _cost_tariff(profile: dict | None) -> dict | None:
+    """Costs additionally require every applicable rate."""
+    scheduled = _schedule_tariff(profile)
+    rate_fields = [
+        "electricity_peak_per_kwh", "electricity_offpeak_per_kwh", "heat_per_mj",
+        "co2_per_kg", "water_per_m3",
+    ]
+    return scheduled if scheduled and all(scheduled.get(field) is not None for field in rate_fields) else None
 
 
 def _session(session_id: UUID, principal: Principal) -> ReplaySession:
@@ -144,9 +154,10 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
     data = _data()
     cursor = session.effective_cursor()
     try:
-        tariff = _validated_tariff(get_tariff(settings.database_url, SITE_ID, cursor.date()))
+        tariff_profile = get_tariff(settings.database_url, SITE_ID, cursor.date())
     except psycopg.Error:
-        tariff = None
+        tariff_profile = None
+    tariff = _cost_tariff(tariff_profile)
     try:
         snapshot = operational_snapshot(
             data.operational,
@@ -160,7 +171,8 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     operational_events = efficiency_events(
-        data.operational, cursor, tariff.get("tou_windows") if tariff else None
+        data.operational, cursor,
+        tariff_profile.get("tou_windows") if _schedule_tariff(tariff_profile) else None,
     )
     snapshot["anomalies"] = sorted(
         [*snapshot["anomalies"], *operational_events],
@@ -317,16 +329,18 @@ def energy_resources(
     data = _data()
     cursor = pd.Timestamp(payload["cursor"])
     try:
-        tariff = _validated_tariff(get_tariff(settings.database_url, SITE_ID, cursor.date()))
+        tariff_profile = get_tariff(settings.database_url, SITE_ID, cursor.date())
     except psycopg.Error:
-        tariff = None
-    tou_windows = tariff.get("tou_windows") if tariff else None
+        tariff_profile = None
+    schedule_tariff = _schedule_tariff(tariff_profile)
+    cost_tariff = _cost_tariff(tariff_profile)
+    tou_windows = schedule_tariff.get("tou_windows") if schedule_tariff else None
     five_min_intraday = intraday_energy_frame(
         data.operational, data.resources, cursor.to_pydatetime(), grain="5min",
         tou_windows=tou_windows,
     )
     intraday = aggregate_intraday(five_min_intraday, grain)
-    intraday = apply_intraday_cost(intraday, tariff)
+    intraday = apply_intraday_cost(intraday, cost_tariff)
     deltas = {
         "1h": pd.Timedelta(hours=1), "6h": pd.Timedelta(hours=6),
         "24h": pd.Timedelta(hours=24), "7d": pd.Timedelta(days=7),
@@ -341,7 +355,7 @@ def energy_resources(
     )
     efficiency = efficiency_indicators(
         five_min_intraday,
-        data.operational, data.resources, cursor.to_pydatetime(), tariff,
+        data.operational, data.resources, cursor.to_pydatetime(), schedule_tariff,
     )
     efficiency_anomalies = [
         item for item in payload["anomalies"] if item.get("category") == "efficiency"
@@ -362,8 +376,9 @@ def energy_resources(
         "grain": grain,
         "series": records,
         "reconstruction": reconstruction,
-        "cost_configured": bool(tariff),
-        "currency": tariff.get("currency") if tariff else None,
+        "cost_configured": bool(cost_tariff),
+        "tou_configured": bool(schedule_tariff),
+        "currency": tariff_profile.get("currency") if tariff_profile else None,
     }
     base["efficiency"] = efficiency
     return base
@@ -435,15 +450,16 @@ def assistant_message(
     data = _data()
     cursor = pd.Timestamp(snapshot["cursor"])
     try:
-        tariff = _validated_tariff(get_tariff(settings.database_url, SITE_ID, cursor.date()))
+        tariff_profile = get_tariff(settings.database_url, SITE_ID, cursor.date())
     except psycopg.Error:
-        tariff = None
+        tariff_profile = None
+    schedule_tariff = _schedule_tariff(tariff_profile)
     intraday = intraday_energy_frame(
         data.operational, data.resources, cursor.to_pydatetime(), grain="5min",
-        tou_windows=tariff.get("tou_windows") if tariff else None,
+        tou_windows=schedule_tariff.get("tou_windows") if schedule_tariff else None,
     )
     snapshot["efficiency"] = efficiency_indicators(
-        intraday, data.operational, data.resources, cursor.to_pydatetime(), tariff,
+        intraday, data.operational, data.resources, cursor.to_pydatetime(), schedule_tariff,
     )
     snapshot["reconstruction"] = reconstruction_metadata(
         data.operational, data.resources, cursor.to_pydatetime()

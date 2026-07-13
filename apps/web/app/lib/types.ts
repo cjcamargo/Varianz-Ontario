@@ -21,7 +21,7 @@ export type Snapshot = {
   intraday?:{
     grain:"5min"|"1h"; series:Point[];
     reconstruction:{method:string;calibration_days:number;model_version:string;fit_r2:Record<string,number|null>;evidence_ids:string[]};
-    cost_configured:boolean;currency:string|null;
+    cost_configured:boolean;tou_configured:boolean;currency:string|null;
   };
   efficiency?:Record<string,any>;
 };

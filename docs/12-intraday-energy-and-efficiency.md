@@ -169,7 +169,7 @@ evidence_ids}` (mirror the `energy_baseline_frames` output shape).
 2. **Weather-normalized heat intensity** — reuse `energy_baseline_frames` (already an EnPI); add an
    intraday variant: heat per heating-degree `Σheat / Σmax(t_heat_vip−Tout,0)·Δt`.
 3. **Peak-energy share** — `elec_peak / (elec_peak+elec_offpeak)` under the tariff's ToU windows.
-   Cost-efficiency indicator (only shown once tariff configured).
+   Cost-efficiency indicator shown once a sourced ToU schedule is configured; rates are not needed.
 4. **Simultaneity waste index** — fraction of *heat energy* delivered while `VentLee > θ_vent`
    (heating against open vents) + fraction of *lighting energy* while `Iglob > θ_solar`
    (supplementing abundant daylight). Report as an observed % of energy in counterproductive states
@@ -198,7 +198,8 @@ Thresholds are demo-tunable constants; document defaults and expose no prescript
 ```
 Provide a named **Ontario ToU preset** (winter/summer) selectable in `SettingsView`. Cost per
 interval = `elec_peak·peak_rate + elec_offpeak·offpeak_rate + heat·heat_rate + co2·co2_rate`;
-aggregate to the intraday cost series. Keep the "cost hidden until fully configured & sourced"
+aggregate to the intraday cost series. A sourced schedule enables peak share independently. Keep the
+"cost hidden until all rates are fully configured & sourced"
 guardrail. Validate: reconstructed peak share under the *dataset's original* windows should
 approximate measured `ElecHigh/(ElecHigh+ElecLow)` (≈1.37 ratio) — log as a sanity check.
 
@@ -214,7 +215,7 @@ approximate measured `ElecHigh/(ElecHigh+ElecLow)` (≈1.37 ratio) — log as a 
   when history < threshold.
 - Efficiency events fire on hand-constructed windows (e.g. pipe hot + vent open) and stay silent
   otherwise; wording contains no "save/savings/reduce cost by" (assert via a copy lint).
-- Cost is `None` until tariff configured; ToU classification matches window boundaries.
+- Cost is `None` until all rates are configured; ToU classification and peak share require only a sourced schedule and match window boundaries.
 
 ---
 
@@ -242,4 +243,4 @@ savings/ROI claims; sub-metering per equipment beyond the heat/elec/CO₂ split.
 2. Fidelity R² ≥ 0.90 / 0.97 / 0.99 (heat / elec / co2).
 3. EnPIs + ≥3 efficiency-event types render in the Energy view with evidence IDs and versions.
 4. All new copy passes the no-causal / no-savings language check.
-5. Cost & peak-share appear only with a configured, sourced Ontario tariff (ToU-aware).
+5. Peak share appears with a sourced Ontario ToU schedule; cost additionally requires all rates.

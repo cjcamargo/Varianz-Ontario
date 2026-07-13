@@ -7,6 +7,7 @@ type EnergyProps = {
   data:Snapshot; k:Snapshot["kpis"]; baseline:Record<string,any>;
   ask:(custom?:string,anomalyId?:string)=>void;
   grain:"5min"|"1h"; setGrain:(grain:"5min"|"1h")=>void;
+  openSettings:()=>void;
 };
 
 const indicatorNames:Record<string,string>={
@@ -16,7 +17,7 @@ const indicatorNames:Record<string,string>={
   simultaneity_index:"Counterproductive operating states",
 };
 
-export function EnergyView({data,k,baseline,ask,grain,setGrain}:EnergyProps){
+export function EnergyView({data,k,baseline,ask,grain,setGrain,openSettings}:EnergyProps){
   const intraday=data.intraday;
   const efficiency=data.efficiency||{};
   const points=(intraday?.series||[]).map(point=>({
@@ -33,7 +34,7 @@ export function EnergyView({data,k,baseline,ask,grain,setGrain}:EnergyProps){
   return <>
     <section className="hero-grid compact">
       <Card label="Heat" value={k.daily_heat_mj_m2} unit="MJ/m²·day" meta="Observed daily resource total"/>
-      <Card label="Electricity" value={k.daily_electricity_kwh_m2} unit="kWh/m²·day" meta={intraday?.cost_configured?`${fmt((efficiency.peak_share as any)?.value)}% configured peak share`:"Configure Ontario tariffs for peak share"}/>
+      <Card label="Electricity" value={k.daily_electricity_kwh_m2} unit="kWh/m²·day" meta={intraday?.tou_configured?`${fmt((efficiency.peak_share as any)?.value)}% configured peak share`:"Configure a ToU schedule for peak share"}/>
       <Card label="CO₂" value={k.daily_co2_kg_m2} unit="kg/m²·day" meta="Observed resource intensity"/>
       <Card label="Water" value={k.daily_irrigation_l_m2} unit="L/m²·day" meta={`${fmt(k.drain_ratio_pct)}% drain ratio`}/>
     </section>
@@ -51,7 +52,7 @@ export function EnergyView({data,k,baseline,ask,grain,setGrain}:EnergyProps){
       <div className="model-strip reconstruction-strip"><div><span>METHOD</span><b>{intraday?.reconstruction.method||"Loading"}</b></div><div><span>CALIBRATION</span><b>{intraday?.reconstruction.calibration_days||0} completed days</b></div><div><span>QUALITY</span><b>Solid allocated · dashed provisional</b></div><div><span>MODEL</span><b>{intraday?.reconstruction.model_version||"—"}</b></div></div>
     </section>
     <section className="efficiency-grid">
-      {Object.entries(indicatorNames).map(([code,label])=>{const item=efficiency[code] as any;return <article className="panel enpi-card" key={code}><span>OPERATIONAL ENPI</span><h2>{label}</h2><strong>{item?.value==null?"Not available":`${fmt(item.value)} ${item.unit}`}</strong><p>{item?.expected==null?"Observed diagnostic; no validated expectation yet.":`${fmt(item.variance_pct)}% versus expected`}</p><small>Confidence: {item?.confidence||"not available"}</small></article>})}
+      {Object.entries(indicatorNames).map(([code,label])=>{const item=efficiency[code] as any;return <article className="panel enpi-card" key={code}><span>OPERATIONAL ENPI</span><h2>{label}</h2><strong>{item?.value==null?(code==="peak_share"?"ToU schedule required":"Not available"):`${fmt(item.value)} ${item.unit}`}</strong><p>{item?.value==null?(item?.unavailable_reason||"Insufficient evidence at this replay cursor."):item?.expected==null?"Observed diagnostic; no validated expectation yet.":`${fmt(item.variance_pct)}% versus expected`}</p><small>Confidence: {item?.confidence||"not available"}</small>{code==="peak_share"&&item?.value==null?<button className="enpi-action" onClick={openSettings}>Configure ToU schedule</button>:null}</article>})}
     </section>
     <section className="two-col efficiency-section">
       <article className="panel"><div className="panel-head"><div><span>EFFICIENCY EVENTS</span><h2>Prioritized operational conflicts</h2></div></div>{efficiencyEvents.length?<div className="efficiency-events">{efficiencyEvents.slice(0,6).map(event=><div key={event.id}><i className={`severity-dot ${event.severity}`}/><p><b>{event.message}</b><span>{event.duration_minutes} min · {event.confidence} confidence</span></p><button onClick={()=>ask(`Explain this efficiency event and give the operator one direct next action.`,event.id)}>Explain</button></div>)}</div>:<div className="no-data compact-empty">No persistent efficiency conflict in the visible evidence.</div>}</article>
