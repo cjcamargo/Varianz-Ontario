@@ -1,0 +1,34 @@
+{
+  "candidate": {
+    "algorithm": "elastic_net",
+    "alpha": 0.02,
+    "l1_ratio": 0.25
+  },
+  "fallback": {
+    "algorithm": "rolling_7d_median",
+    "window_days": 7
+  },
+  "features": [
+    "tout_mean",
+    "heating_degree_hours",
+    "radiation_mean",
+    "lighting_hours",
+    "crop_age_days"
+  ],
+  "interval_method": "empirical residual quantiles p10/p90",
+  "model_version": "energy-baseline-2.1.0",
+  "promotion_gate": {
+    "maximum_fold_degradation_pct": 20,
+    "minimum_locked_test_improvement_pct": 5,
+    "validation": "four expanding walk-forward folds plus locked final 20 percent"
+  },
+  "selection_counts": {
+    "elastic_net": 16,
+    "insufficient_data": 44,
+    "rolling_7d_median": 106
+  },
+  "target": {
+    "metric": "Heat_cons",
+    "unit": "MJ/m2/day"
+  }
+}

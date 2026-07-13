@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 import psycopg
 from psycopg import sql
+from psycopg.types.json import Jsonb
 
+from varianz.baseline_artifact import get_baseline_artifact
 from varianz.config import settings
 from varianz.dataset import load_replay_frame, load_resources, source_sha256
 from varianz.metrics import METRICS, OPERATIONAL_CODES, RESOURCE_CODES
@@ -33,9 +36,21 @@ def status() -> None:
         )
         database, role, migrated = cur.fetchone()
         observations = 0
+        model_artifacts = 0
         if migrated:
             cur.execute("select count(*) from app.observation where site_id=%s", (SITE_ID,))
             observations = cur.fetchone()[0]
+            cur.execute(
+                "select exists(select 1 from information_schema.tables "
+                "where table_schema='analytics' and table_name='model_artifact')"
+            )
+            if cur.fetchone()[0]:
+                cur.execute(
+                    "select count(*) from analytics.model_artifact "
+                    "where site_id=%s and status='active'",
+                    (SITE_ID,),
+                )
+                model_artifacts = cur.fetchone()[0]
         print(
             {
                 "authenticated": True,
@@ -43,6 +58,7 @@ def status() -> None:
                 "role": role,
                 "migrated": migrated,
                 "demo_observations": observations,
+                "active_model_artifacts": model_artifacts,
             }
         )
 
@@ -74,6 +90,43 @@ def migrate() -> None:
             cur.execute("insert into audit.schema_migration(version) values (%s)", (migration.name,))
             applied.append(migration.name)
     print({"migrations_applied": applied, "status": "current"})
+
+
+def _sync_model_artifact(cur) -> str:
+    artifact = get_baseline_artifact()
+    manifest_path = artifact.directory / "manifest.json"
+    manifest_hash = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    artifact_uri = f"repo://{artifact.directory.relative_to(ROOT).as_posix()}/manifest.json"
+    cur.execute(
+        "update analytics.model_artifact set status='retired', effective_to=now() "
+        "where site_id=%s and status='active' and id<>%s",
+        (SITE_ID, artifact.artifact_id),
+    )
+    cur.execute(
+        """
+        insert into analytics.model_artifact
+            (id, organization_id, site_id, model_version, data_version,
+             definitions_version, artifact_uri, manifest_sha256, effective_from,
+             status, metadata)
+        values (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'active', %s)
+        on conflict (id) do update set
+            status='active', effective_to=null, artifact_uri=excluded.artifact_uri,
+            manifest_sha256=excluded.manifest_sha256, metadata=excluded.metadata
+        """,
+        (
+            artifact.artifact_id, ORG_ID, SITE_ID,
+            artifact.manifest["model_version"], artifact.manifest["data_version"],
+            artifact.manifest["definitions_version"], artifact_uri, manifest_hash,
+            artifact.manifest["coverage"]["start"], Jsonb(artifact.manifest),
+        ),
+    )
+    return artifact.artifact_id
+
+
+def sync_artifacts() -> None:
+    with connect() as conn, conn.cursor() as cur:
+        artifact_id = _sync_model_artifact(cur)
+    print({"active_model_artifact": artifact_id, "status": "current"})
 
 
 def seed() -> None:
@@ -164,14 +217,20 @@ def seed() -> None:
         inserted = cur.rowcount
         cur.execute("select count(*) from app.observation where site_id=%s", (SITE_ID,))
         total = cur.fetchone()[0]
+        _sync_model_artifact(cur)
     print({"seed": "wageningen", "inserted": inserted, "total": total})
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Varianz database administration")
-    parser.add_argument("command", choices=("status", "migrate", "seed"))
+    parser.add_argument("command", choices=("status", "migrate", "seed", "sync-artifacts"))
     args = parser.parse_args()
-    {"status": status, "migrate": migrate, "seed": seed}[args.command]()
+    {
+        "status": status,
+        "migrate": migrate,
+        "seed": seed,
+        "sync-artifacts": sync_artifacts,
+    }[args.command]()
 
 
 if __name__ == "__main__":

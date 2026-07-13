@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from .dataset import load_replay_frame, load_resources
+from .baseline_artifact import BaselineArtifactError, get_baseline_artifact
 from .metrics import DATA_VERSION, DEFINITIONS_VERSION, METRICS, MODEL_VERSION
 
 
@@ -101,7 +102,7 @@ def _mae(actual: np.ndarray, predicted: np.ndarray) -> float:
     return float(np.mean(np.abs(actual - predicted)))
 
 
-def energy_baseline_frames(
+def compute_energy_baseline_frames(
     operational: pd.DataFrame, resources: pd.DataFrame, cursor: datetime
 ) -> dict:
     data = _daily_features(
@@ -208,6 +209,29 @@ def energy_baseline_frames(
         ],
         "evidence_ids": [_evidence("heat_baseline", cursor)],
     }
+
+
+def energy_baseline_frames(
+    operational: pd.DataFrame, resources: pd.DataFrame, cursor: datetime
+) -> dict:
+    """Serve a future-safe precomputed prediction; calculate only as an explicit fallback."""
+    try:
+        artifact = get_baseline_artifact()
+        baseline = artifact.prediction_at(cursor)
+    except BaselineArtifactError:
+        artifact = None
+        baseline = None
+    if baseline is None:
+        baseline = compute_energy_baseline_frames(operational, resources, cursor)
+        baseline["serving_source"] = "runtime_fallback"
+        return baseline
+    baseline["serving_source"] = "versioned_artifact"
+    baseline["artifact_id"] = artifact.artifact_id
+    baseline["artifact_as_of"] = max(
+        timestamp for timestamp in artifact.timestamps if timestamp <= pd.Timestamp(cursor)
+    ).isoformat()
+    baseline["evidence_ids"] = [_evidence("heat_baseline", cursor), f"artifact:{artifact.artifact_id}"]
+    return baseline
 
 
 def energy_baseline(path: Path, cursor: datetime) -> dict:

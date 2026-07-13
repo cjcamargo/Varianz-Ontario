@@ -1,0 +1,6269 @@
+{
+  "future_safe": true,
+  "predictions": [
+    {
+      "as_of": "2019-12-16T00:00:00+00:00",
+      "baseline": {
+        "available_days": 1,
+        "evidence_ids": [
+          "ev_80e7fd5797a6e0"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-17T00:00:00+00:00",
+      "baseline": {
+        "available_days": 2,
+        "evidence_ids": [
+          "ev_9cdc51aa884f25"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-18T00:00:00+00:00",
+      "baseline": {
+        "available_days": 3,
+        "evidence_ids": [
+          "ev_74ab5851ce6cd5"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-19T00:00:00+00:00",
+      "baseline": {
+        "available_days": 4,
+        "evidence_ids": [
+          "ev_e73d92f60a2362"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-20T00:00:00+00:00",
+      "baseline": {
+        "available_days": 5,
+        "evidence_ids": [
+          "ev_da416af36d101e"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-21T00:00:00+00:00",
+      "baseline": {
+        "available_days": 6,
+        "evidence_ids": [
+          "ev_054a9df7cb2502"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-22T00:00:00+00:00",
+      "baseline": {
+        "available_days": 7,
+        "evidence_ids": [
+          "ev_19f99db8621c0e"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-23T00:00:00+00:00",
+      "baseline": {
+        "available_days": 8,
+        "evidence_ids": [
+          "ev_c317f42dbfc908"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-24T00:00:00+00:00",
+      "baseline": {
+        "available_days": 9,
+        "evidence_ids": [
+          "ev_cf8108eb4fcbb8"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-25T00:00:00+00:00",
+      "baseline": {
+        "available_days": 10,
+        "evidence_ids": [
+          "ev_cb0983f88f7c65"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-26T00:00:00+00:00",
+      "baseline": {
+        "available_days": 11,
+        "evidence_ids": [
+          "ev_2530b7f45a4abb"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-27T00:00:00+00:00",
+      "baseline": {
+        "available_days": 12,
+        "evidence_ids": [
+          "ev_cf91abbb7d64d9"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-28T00:00:00+00:00",
+      "baseline": {
+        "available_days": 13,
+        "evidence_ids": [
+          "ev_e5c34442157c5a"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-29T00:00:00+00:00",
+      "baseline": {
+        "available_days": 14,
+        "evidence_ids": [
+          "ev_6e3391daea1db5"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-30T00:00:00+00:00",
+      "baseline": {
+        "available_days": 15,
+        "evidence_ids": [
+          "ev_c13a39243a7f4a"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2019-12-31T00:00:00+00:00",
+      "baseline": {
+        "available_days": 16,
+        "evidence_ids": [
+          "ev_78bd6b9c81e473"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-01T00:00:00+00:00",
+      "baseline": {
+        "available_days": 17,
+        "evidence_ids": [
+          "ev_372e5cde56b27c"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-02T00:00:00+00:00",
+      "baseline": {
+        "available_days": 18,
+        "evidence_ids": [
+          "ev_03387ea4508c19"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-03T00:00:00+00:00",
+      "baseline": {
+        "available_days": 19,
+        "evidence_ids": [
+          "ev_afb727d261cdf1"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-04T00:00:00+00:00",
+      "baseline": {
+        "available_days": 20,
+        "evidence_ids": [
+          "ev_a3f2b9ab0eb4c9"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-05T00:00:00+00:00",
+      "baseline": {
+        "available_days": 21,
+        "evidence_ids": [
+          "ev_838185d3e60564"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-06T00:00:00+00:00",
+      "baseline": {
+        "available_days": 22,
+        "evidence_ids": [
+          "ev_1b36a184283efa"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-07T00:00:00+00:00",
+      "baseline": {
+        "available_days": 23,
+        "evidence_ids": [
+          "ev_0145bb42281443"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-08T00:00:00+00:00",
+      "baseline": {
+        "available_days": 24,
+        "evidence_ids": [
+          "ev_ce8b898dcc5a03"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-09T00:00:00+00:00",
+      "baseline": {
+        "available_days": 25,
+        "evidence_ids": [
+          "ev_dc8ee72149e7db"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-10T00:00:00+00:00",
+      "baseline": {
+        "available_days": 26,
+        "evidence_ids": [
+          "ev_4d25a815d9ec86"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-11T00:00:00+00:00",
+      "baseline": {
+        "available_days": 27,
+        "evidence_ids": [
+          "ev_82274348f67a4a"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-12T00:00:00+00:00",
+      "baseline": {
+        "available_days": 28,
+        "evidence_ids": [
+          "ev_b4e39d2d590882"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-13T00:00:00+00:00",
+      "baseline": {
+        "available_days": 29,
+        "evidence_ids": [
+          "ev_4a1ea592eca0f9"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-14T00:00:00+00:00",
+      "baseline": {
+        "available_days": 30,
+        "evidence_ids": [
+          "ev_1fb6ef6e9bdc07"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-15T00:00:00+00:00",
+      "baseline": {
+        "available_days": 31,
+        "evidence_ids": [
+          "ev_32dcda4fbe96f7"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-16T00:00:00+00:00",
+      "baseline": {
+        "available_days": 32,
+        "evidence_ids": [
+          "ev_881b12f1e06209"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-17T00:00:00+00:00",
+      "baseline": {
+        "available_days": 33,
+        "evidence_ids": [
+          "ev_e223ab49e58d9c"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-18T00:00:00+00:00",
+      "baseline": {
+        "available_days": 34,
+        "evidence_ids": [
+          "ev_38a9752498e7f1"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-19T00:00:00+00:00",
+      "baseline": {
+        "available_days": 35,
+        "evidence_ids": [
+          "ev_ce4799f12cda47"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-20T00:00:00+00:00",
+      "baseline": {
+        "available_days": 36,
+        "evidence_ids": [
+          "ev_c248e61387a5cc"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-21T00:00:00+00:00",
+      "baseline": {
+        "available_days": 37,
+        "evidence_ids": [
+          "ev_9cec101e179ee2"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-22T00:00:00+00:00",
+      "baseline": {
+        "available_days": 38,
+        "evidence_ids": [
+          "ev_aa90fe6f5caedd"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-23T00:00:00+00:00",
+      "baseline": {
+        "available_days": 39,
+        "evidence_ids": [
+          "ev_d98c5b2de02638"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-24T00:00:00+00:00",
+      "baseline": {
+        "available_days": 40,
+        "evidence_ids": [
+          "ev_fca5b62512c33c"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-25T00:00:00+00:00",
+      "baseline": {
+        "available_days": 41,
+        "evidence_ids": [
+          "ev_6a05fb4cb13c3c"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-26T00:00:00+00:00",
+      "baseline": {
+        "available_days": 42,
+        "evidence_ids": [
+          "ev_0cc533f9456a6d"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-27T00:00:00+00:00",
+      "baseline": {
+        "available_days": 43,
+        "evidence_ids": [
+          "ev_c610e7a6d597c5"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-28T00:00:00+00:00",
+      "baseline": {
+        "available_days": 44,
+        "evidence_ids": [
+          "ev_d69948f257a98f"
+        ],
+        "minimum_days": 45,
+        "model_version": "energy-baseline-2.1.0",
+        "status": "insufficient_data"
+      }
+    },
+    {
+      "as_of": "2020-01-29T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 5.29,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.133
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_eefae386503840"
+        ],
+        "expected_mj_m2": 4.77,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 4.436,
+        "p90_mj_m2": 5.948,
+        "promotion_gate": {
+          "candidate_mae": 0.856,
+          "folds": 4,
+          "locked_test_improvement_pct": -14.6,
+          "naive_mae": 0.747,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.52,
+        "robust_z": 0.855,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 36,
+        "variance_pct": 10.9
+      }
+    },
+    {
+      "as_of": "2020-01-30T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.19,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.05
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_62ca74ab721542"
+        ],
+        "expected_mj_m2": 4.83,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 4.496,
+        "p90_mj_m2": 6.008,
+        "promotion_gate": {
+          "candidate_mae": 0.745,
+          "folds": 4,
+          "locked_test_improvement_pct": -1.3,
+          "naive_mae": 0.736,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.64,
+        "robust_z": -1.053,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 36,
+        "variance_pct": -13.3
+      }
+    },
+    {
+      "as_of": "2020-01-31T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.61,
+        "anomaly": true,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.717
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_f26efe6b4c016e"
+        ],
+        "expected_mj_m2": 2.368,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.902,
+        "p90_mj_m2": 2.734,
+        "promotion_gate": {
+          "candidate_mae": 0.665,
+          "folds": 4,
+          "locked_test_improvement_pct": 9.4,
+          "naive_mae": 0.734,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.242,
+        "robust_z": 4.313,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 37,
+        "variance_pct": 52.5
+      }
+    },
+    {
+      "as_of": "2020-02-01T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.57,
+        "anomaly": true,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 11.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.633
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_f9a3a8985ae208"
+        ],
+        "expected_mj_m2": 2.163,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.647,
+        "p90_mj_m2": 2.51,
+        "promotion_gate": {
+          "candidate_mae": 0.707,
+          "folds": 4,
+          "locked_test_improvement_pct": 14.4,
+          "naive_mae": 0.826,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.407,
+        "robust_z": 4.015,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 38,
+        "variance_pct": 65.1
+      }
+    },
+    {
+      "as_of": "2020-02-02T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.18,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.842
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_6620a2766bd384"
+        ],
+        "expected_mj_m2": 4.35,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.954,
+        "p90_mj_m2": 5.583,
+        "promotion_gate": {
+          "candidate_mae": 0.874,
+          "folds": 4,
+          "locked_test_improvement_pct": -14.9,
+          "naive_mae": 0.76,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.17,
+        "robust_z": -0.27,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 39,
+        "variance_pct": -3.9
+      }
+    },
+    {
+      "as_of": "2020-02-03T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.37,
+        "anomaly": true,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.767
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_bd1c58b8abdfd0"
+        ],
+        "expected_mj_m2": 1.717,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.055,
+        "p90_mj_m2": 2.028,
+        "promotion_gate": {
+          "candidate_mae": 0.702,
+          "folds": 4,
+          "locked_test_improvement_pct": 8.3,
+          "naive_mae": 0.765,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.653,
+        "robust_z": 4.542,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 40,
+        "variance_pct": 96.2
+      }
+    },
+    {
+      "as_of": "2020-02-04T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 5.57,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 7.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.008
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_53b15054863ba4"
+        ],
+        "expected_mj_m2": 4.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.796,
+        "p90_mj_m2": 5.412,
+        "promotion_gate": {
+          "candidate_mae": 0.891,
+          "folds": 4,
+          "locked_test_improvement_pct": -8.4,
+          "naive_mae": 0.822,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.39,
+        "robust_z": 2.038,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 40,
+        "variance_pct": 33.3
+      }
+    },
+    {
+      "as_of": "2020-02-05T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.12,
+        "anomaly": true,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.2
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_3b4870058eb7d9"
+        ],
+        "expected_mj_m2": 1.769,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.176,
+        "p90_mj_m2": 2.103,
+        "promotion_gate": {
+          "candidate_mae": 0.664,
+          "folds": 4,
+          "locked_test_improvement_pct": 18.9,
+          "naive_mae": 0.819,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.351,
+        "robust_z": 5.053,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 41,
+        "variance_pct": 76.4
+      }
+    },
+    {
+      "as_of": "2020-02-06T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.29,
+        "anomaly": true,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.158
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_b2fb92663ee9de"
+        ],
+        "expected_mj_m2": 1.944,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.355,
+        "p90_mj_m2": 2.251,
+        "promotion_gate": {
+          "candidate_mae": 0.741,
+          "folds": 4,
+          "locked_test_improvement_pct": 10.3,
+          "naive_mae": 0.825,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.346,
+        "robust_z": 5.413,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 42,
+        "variance_pct": 69.3
+      }
+    },
+    {
+      "as_of": "2020-02-07T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.15,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.283
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_b4fc5b97780961"
+        ],
+        "expected_mj_m2": 3.57,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.216,
+        "p90_mj_m2": 4.787,
+        "promotion_gate": {
+          "candidate_mae": 0.803,
+          "folds": 4,
+          "locked_test_improvement_pct": 3.8,
+          "naive_mae": 0.835,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.58,
+        "robust_z": 0.807,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 43,
+        "variance_pct": 16.2
+      }
+    },
+    {
+      "as_of": "2020-02-08T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.65,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.133
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_8a85df8dc42d3a"
+        ],
+        "expected_mj_m2": 3.505,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.931,
+        "p90_mj_m2": 4.136,
+        "promotion_gate": {
+          "candidate_mae": 0.766,
+          "folds": 4,
+          "locked_test_improvement_pct": 7.0,
+          "naive_mae": 0.824,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.145,
+        "robust_z": 2.968,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 44,
+        "variance_pct": 32.7
+      }
+    },
+    {
+      "as_of": "2020-02-09T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.83,
+        "anomaly": true,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.958
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_af7e9931f27d5d"
+        ],
+        "expected_mj_m2": 3.603,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.028,
+        "p90_mj_m2": 4.234,
+        "promotion_gate": {
+          "candidate_mae": 0.734,
+          "folds": 4,
+          "locked_test_improvement_pct": 9.5,
+          "naive_mae": 0.812,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.227,
+        "robust_z": 3.181,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 44,
+        "variance_pct": 34.1
+      }
+    },
+    {
+      "as_of": "2020-02-10T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.76,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.767
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_ea278cce2cd4f9"
+        ],
+        "expected_mj_m2": 4.15,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.81,
+        "p90_mj_m2": 5.371,
+        "promotion_gate": {
+          "candidate_mae": 0.708,
+          "folds": 4,
+          "locked_test_improvement_pct": 13.6,
+          "naive_mae": 0.819,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.61,
+        "robust_z": 0.848,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 45,
+        "variance_pct": 14.7
+      }
+    },
+    {
+      "as_of": "2020-02-11T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 5.57,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.108
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_58c6e9ddfc54e7"
+        ],
+        "expected_mj_m2": 3.965,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.435,
+        "p90_mj_m2": 4.882,
+        "promotion_gate": {
+          "candidate_mae": 0.763,
+          "folds": 4,
+          "locked_test_improvement_pct": 9.5,
+          "naive_mae": 0.843,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.605,
+        "robust_z": 2.861,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 46,
+        "variance_pct": 40.5
+      }
+    },
+    {
+      "as_of": "2020-02-12T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 5.03,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.108
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_b4c37aa46654c4"
+        ],
+        "expected_mj_m2": 3.746,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.13,
+        "p90_mj_m2": 4.522,
+        "promotion_gate": {
+          "candidate_mae": 0.693,
+          "folds": 4,
+          "locked_test_improvement_pct": 10.2,
+          "naive_mae": 0.772,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.284,
+        "robust_z": 2.683,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 47,
+        "variance_pct": 34.3
+      }
+    },
+    {
+      "as_of": "2020-02-13T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.93,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.2
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_d0de83e8ddc20e"
+        ],
+        "expected_mj_m2": 4.76,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 4.198,
+        "p90_mj_m2": 5.972,
+        "promotion_gate": {
+          "candidate_mae": 0.656,
+          "folds": 4,
+          "locked_test_improvement_pct": 3.8,
+          "naive_mae": 0.682,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.17,
+        "robust_z": 0.234,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 48,
+        "variance_pct": 3.6
+      }
+    },
+    {
+      "as_of": "2020-02-14T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.79,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 7.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.033
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_7ae6276ad10864"
+        ],
+        "expected_mj_m2": 3.729,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.119,
+        "p90_mj_m2": 4.402,
+        "promotion_gate": {
+          "candidate_mae": 0.549,
+          "folds": 4,
+          "locked_test_improvement_pct": 22.6,
+          "naive_mae": 0.709,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.061,
+        "robust_z": 0.165,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 48,
+        "variance_pct": 1.6
+      }
+    },
+    {
+      "as_of": "2020-02-15T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.35,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.925
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_b8f96cc089b0c7"
+        ],
+        "expected_mj_m2": 3.677,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.071,
+        "p90_mj_m2": 4.291,
+        "promotion_gate": {
+          "candidate_mae": 0.645,
+          "folds": 4,
+          "locked_test_improvement_pct": 20.4,
+          "naive_mae": 0.81,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.327,
+        "robust_z": -1.108,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 49,
+        "variance_pct": -8.9
+      }
+    },
+    {
+      "as_of": "2020-02-16T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.38,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 12.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.608
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_418bbd9bf88cfe"
+        ],
+        "expected_mj_m2": 3.556,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.955,
+        "p90_mj_m2": 4.119,
+        "promotion_gate": {
+          "candidate_mae": 0.671,
+          "folds": 4,
+          "locked_test_improvement_pct": 14.1,
+          "naive_mae": 0.782,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.824,
+        "robust_z": 2.363,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 50,
+        "variance_pct": 23.2
+      }
+    },
+    {
+      "as_of": "2020-02-17T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.73,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.867
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_66b5d5d11eba4d"
+        ],
+        "expected_mj_m2": 4.76,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 4.102,
+        "p90_mj_m2": 5.991,
+        "promotion_gate": {
+          "candidate_mae": 0.649,
+          "folds": 4,
+          "locked_test_improvement_pct": 4.2,
+          "naive_mae": 0.677,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.03,
+        "robust_z": -0.042,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 51,
+        "variance_pct": -0.6
+      }
+    },
+    {
+      "as_of": "2020-02-18T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.0,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.95
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_4a66e66d70e96a"
+        ],
+        "expected_mj_m2": 3.593,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.81,
+        "p90_mj_m2": 4.233,
+        "promotion_gate": {
+          "candidate_mae": 0.46,
+          "folds": 4,
+          "locked_test_improvement_pct": 29.4,
+          "naive_mae": 0.652,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.407,
+        "robust_z": 0.802,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 52,
+        "variance_pct": 11.3
+      }
+    },
+    {
+      "as_of": "2020-02-19T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.02,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.05
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_33552c9cf0cb75"
+        ],
+        "expected_mj_m2": 3.626,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.843,
+        "p90_mj_m2": 4.266,
+        "promotion_gate": {
+          "candidate_mae": 0.458,
+          "folds": 4,
+          "locked_test_improvement_pct": 27.4,
+          "naive_mae": 0.631,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.394,
+        "robust_z": 0.777,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 52,
+        "variance_pct": 10.9
+      }
+    },
+    {
+      "as_of": "2020-02-20T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.56,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.058
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_885aed8f4c001b"
+        ],
+        "expected_mj_m2": 3.43,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.502,
+        "p90_mj_m2": 3.965,
+        "promotion_gate": {
+          "candidate_mae": 0.398,
+          "folds": 4,
+          "locked_test_improvement_pct": 37.8,
+          "naive_mae": 0.641,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.13,
+        "robust_z": 0.287,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 53,
+        "variance_pct": 3.8
+      }
+    },
+    {
+      "as_of": "2020-02-21T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.89,
+        "anomaly": false,
+        "candidate_promoted": true,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.1
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_3bdad01c066b3e"
+        ],
+        "expected_mj_m2": 3.426,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.441,
+        "p90_mj_m2": 3.958,
+        "promotion_gate": {
+          "candidate_mae": 0.503,
+          "folds": 4,
+          "locked_test_improvement_pct": 17.1,
+          "naive_mae": 0.607,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.464,
+        "robust_z": 0.975,
+        "selected_model": "elastic_net",
+        "status": "ready",
+        "training_days": 54,
+        "variance_pct": 13.6
+      }
+    },
+    {
+      "as_of": "2020-02-22T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.66,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.867
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_66195d9746af00"
+        ],
+        "expected_mj_m2": 4.0,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.234,
+        "p90_mj_m2": 5.221,
+        "promotion_gate": {
+          "candidate_mae": 0.55,
+          "folds": 4,
+          "locked_test_improvement_pct": 0.8,
+          "naive_mae": 0.554,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.34,
+        "robust_z": -0.461,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 55,
+        "variance_pct": -8.5
+      }
+    },
+    {
+      "as_of": "2020-02-23T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.17,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.825
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_06ce5206f7c265"
+        ],
+        "expected_mj_m2": 4.0,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.252,
+        "p90_mj_m2": 5.218,
+        "promotion_gate": {
+          "candidate_mae": 0.648,
+          "folds": 4,
+          "locked_test_improvement_pct": -25.1,
+          "naive_mae": 0.518,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.17,
+        "robust_z": 0.234,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 56,
+        "variance_pct": 4.2
+      }
+    },
+    {
+      "as_of": "2020-02-24T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.85,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.083
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_ad733ed8984126"
+        ],
+        "expected_mj_m2": 4.0,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.252,
+        "p90_mj_m2": 5.218,
+        "promotion_gate": {
+          "candidate_mae": 0.652,
+          "folds": 4,
+          "locked_test_improvement_pct": -32.1,
+          "naive_mae": 0.493,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.15,
+        "robust_z": -0.206,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 56,
+        "variance_pct": -3.7
+      }
+    },
+    {
+      "as_of": "2020-02-25T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.55,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.792
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_933f0fa66de72f"
+        ],
+        "expected_mj_m2": 3.89,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.16,
+        "p90_mj_m2": 5.105,
+        "promotion_gate": {
+          "candidate_mae": 0.754,
+          "folds": 4,
+          "locked_test_improvement_pct": -58.7,
+          "naive_mae": 0.475,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.34,
+        "robust_z": -0.459,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 57,
+        "variance_pct": -8.7
+      }
+    },
+    {
+      "as_of": "2020-02-26T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.89,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 1.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.5
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_b61a3788202f5b"
+        ],
+        "expected_mj_m2": 3.85,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.138,
+        "p90_mj_m2": 5.062,
+        "promotion_gate": {
+          "candidate_mae": 0.88,
+          "folds": 4,
+          "locked_test_improvement_pct": -82.0,
+          "naive_mae": 0.483,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.04,
+        "robust_z": 1.375,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 58,
+        "variance_pct": 27.0
+      }
+    },
+    {
+      "as_of": "2020-02-27T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.59,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.192
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_8b0b8c62028c5e"
+        ],
+        "expected_mj_m2": 3.85,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.156,
+        "p90_mj_m2": 5.059,
+        "promotion_gate": {
+          "candidate_mae": 0.923,
+          "folds": 4,
+          "locked_test_improvement_pct": -81.9,
+          "naive_mae": 0.507,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.74,
+        "robust_z": 0.924,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 59,
+        "variance_pct": 19.2
+      }
+    },
+    {
+      "as_of": "2020-02-28T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.54,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 3.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.325
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_f1471d09195d40"
+        ],
+        "expected_mj_m2": 3.89,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.214,
+        "p90_mj_m2": 5.096,
+        "promotion_gate": {
+          "candidate_mae": 0.985,
+          "folds": 4,
+          "locked_test_improvement_pct": -82.6,
+          "naive_mae": 0.539,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.65,
+        "robust_z": 0.86,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 60,
+        "variance_pct": 16.7
+      }
+    },
+    {
+      "as_of": "2020-02-29T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.43,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.917
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_a0dafa4106d23f"
+        ],
+        "expected_mj_m2": 4.17,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.494,
+        "p90_mj_m2": 5.376,
+        "promotion_gate": {
+          "candidate_mae": 1.002,
+          "folds": 4,
+          "locked_test_improvement_pct": -81.6,
+          "naive_mae": 0.552,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.74,
+        "robust_z": -0.979,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 60,
+        "variance_pct": -17.7
+      }
+    },
+    {
+      "as_of": "2020-03-01T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.23,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.175
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_1a5471ade9de43"
+        ],
+        "expected_mj_m2": 4.17,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.349,
+        "p90_mj_m2": 5.373,
+        "promotion_gate": {
+          "candidate_mae": 0.968,
+          "folds": 4,
+          "locked_test_improvement_pct": -97.3,
+          "naive_mae": 0.491,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.06,
+        "robust_z": 0.081,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 61,
+        "variance_pct": 1.4
+      }
+    },
+    {
+      "as_of": "2020-03-02T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 4.97,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.175
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_87489356abc683"
+        ],
+        "expected_mj_m2": 4.23,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.4,
+        "p90_mj_m2": 5.43,
+        "promotion_gate": {
+          "candidate_mae": 0.969,
+          "folds": 4,
+          "locked_test_improvement_pct": -118.1,
+          "naive_mae": 0.444,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.74,
+        "robust_z": 1.019,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 62,
+        "variance_pct": 17.5
+      }
+    },
+    {
+      "as_of": "2020-03-03T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.51,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.275
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_f8e73eebf8a77f"
+        ],
+        "expected_mj_m2": 4.54,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.711,
+        "p90_mj_m2": 5.73,
+        "promotion_gate": {
+          "candidate_mae": 0.952,
+          "folds": 4,
+          "locked_test_improvement_pct": -98.1,
+          "naive_mae": 0.481,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -1.03,
+        "robust_z": -1.396,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 63,
+        "variance_pct": -22.7
+      }
+    },
+    {
+      "as_of": "2020-03-04T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.6,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.183
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_1e0bcdbf1c2c73"
+        ],
+        "expected_mj_m2": 4.54,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.712,
+        "p90_mj_m2": 5.72,
+        "promotion_gate": {
+          "candidate_mae": 1.097,
+          "folds": 4,
+          "locked_test_improvement_pct": -82.9,
+          "naive_mae": 0.6,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -1.94,
+        "robust_z": -2.784,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 64,
+        "variance_pct": -42.7
+      }
+    },
+    {
+      "as_of": "2020-03-05T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.88,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.0
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_d91b9fade90741"
+        ],
+        "expected_mj_m2": 4.23,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.402,
+        "p90_mj_m2": 5.41,
+        "promotion_gate": {
+          "candidate_mae": 1.091,
+          "folds": 4,
+          "locked_test_improvement_pct": -86.4,
+          "naive_mae": 0.585,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.35,
+        "robust_z": -0.502,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 64,
+        "variance_pct": -8.3
+      }
+    },
+    {
+      "as_of": "2020-03-06T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.51,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.092
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_a785c6e0bec295"
+        ],
+        "expected_mj_m2": 3.88,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 3.053,
+        "p90_mj_m2": 5.05,
+        "promotion_gate": {
+          "candidate_mae": 1.248,
+          "folds": 4,
+          "locked_test_improvement_pct": -100.3,
+          "naive_mae": 0.623,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -1.37,
+        "robust_z": -1.895,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 65,
+        "variance_pct": -35.3
+      }
+    },
+    {
+      "as_of": "2020-03-07T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.18,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.1
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_5375c3bac14bc0"
+        ],
+        "expected_mj_m2": 3.51,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.684,
+        "p90_mj_m2": 4.67,
+        "promotion_gate": {
+          "candidate_mae": 1.278,
+          "folds": 4,
+          "locked_test_improvement_pct": -105.7,
+          "naive_mae": 0.621,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.33,
+        "robust_z": -0.454,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 66,
+        "variance_pct": -9.4
+      }
+    },
+    {
+      "as_of": "2020-03-08T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.42,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.825
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_2de54c4f938616"
+        ],
+        "expected_mj_m2": 3.51,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.685,
+        "p90_mj_m2": 4.66,
+        "promotion_gate": {
+          "candidate_mae": 1.133,
+          "folds": 4,
+          "locked_test_improvement_pct": -89.0,
+          "naive_mae": 0.599,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.09,
+        "robust_z": -0.121,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 67,
+        "variance_pct": -2.6
+      }
+    },
+    {
+      "as_of": "2020-03-09T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.73,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.875
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_8db9637f1aa42f"
+        ],
+        "expected_mj_m2": 3.42,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.596,
+        "p90_mj_m2": 4.56,
+        "promotion_gate": {
+          "candidate_mae": 1.107,
+          "folds": 4,
+          "locked_test_improvement_pct": -74.8,
+          "naive_mae": 0.634,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.69,
+        "robust_z": -0.99,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 68,
+        "variance_pct": -20.2
+      }
+    },
+    {
+      "as_of": "2020-03-10T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.54,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.967
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_ece8c90046bf45"
+        ],
+        "expected_mj_m2": 3.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.356,
+        "p90_mj_m2": 4.32,
+        "promotion_gate": {
+          "candidate_mae": 1.154,
+          "folds": 4,
+          "locked_test_improvement_pct": -86.6,
+          "naive_mae": 0.618,
+          "no_fold_over_20pct_worse": true,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.36,
+        "robust_z": 0.517,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 68,
+        "variance_pct": 11.3
+      }
+    },
+    {
+      "as_of": "2020-03-11T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.03,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.7
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.8
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_0880198717d61d"
+        ],
+        "expected_mj_m2": 3.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.357,
+        "p90_mj_m2": 4.31,
+        "promotion_gate": {
+          "candidate_mae": 1.126,
+          "folds": 4,
+          "locked_test_improvement_pct": -69.8,
+          "naive_mae": 0.663,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -1.15,
+        "robust_z": -1.633,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 69,
+        "variance_pct": -36.2
+      }
+    },
+    {
+      "as_of": "2020-03-12T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.98,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 11.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.683
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_78745f42e14b69"
+        ],
+        "expected_mj_m2": 3.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.358,
+        "p90_mj_m2": 4.3,
+        "promotion_gate": {
+          "candidate_mae": 1.094,
+          "folds": 4,
+          "locked_test_improvement_pct": -64.5,
+          "naive_mae": 0.665,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.2,
+        "robust_z": -0.287,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 70,
+        "variance_pct": -6.3
+      }
+    },
+    {
+      "as_of": "2020-03-13T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.18,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "medium",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 7.7
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.942
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_2ab6e1d7e47c25"
+        ],
+        "expected_mj_m2": 2.98,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.159,
+        "p90_mj_m2": 4.09,
+        "promotion_gate": {
+          "candidate_mae": 1.038,
+          "folds": 4,
+          "locked_test_improvement_pct": -55.4,
+          "naive_mae": 0.668,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.2,
+        "robust_z": 0.29,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 71,
+        "variance_pct": 6.7
+      }
+    },
+    {
+      "as_of": "2020-03-14T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.79,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.117
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_282ede659fbe56"
+        ],
+        "expected_mj_m2": 3.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.36,
+        "p90_mj_m2": 4.28,
+        "promotion_gate": {
+          "candidate_mae": 1.055,
+          "folds": 4,
+          "locked_test_improvement_pct": -57.4,
+          "naive_mae": 0.671,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.39,
+        "robust_z": -0.56,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 72,
+        "variance_pct": -12.3
+      }
+    },
+    {
+      "as_of": "2020-03-15T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.76,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.9
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_b5e7711a052024"
+        ],
+        "expected_mj_m2": 2.98,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.16,
+        "p90_mj_m2": 4.08,
+        "promotion_gate": {
+          "candidate_mae": 1.065,
+          "folds": 4,
+          "locked_test_improvement_pct": -64.7,
+          "naive_mae": 0.647,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.22,
+        "robust_z": -0.316,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 72,
+        "variance_pct": -7.4
+      }
+    },
+    {
+      "as_of": "2020-03-16T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.25,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.708
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_5a29dc30078deb"
+        ],
+        "expected_mj_m2": 2.79,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.979,
+        "p90_mj_m2": 3.889,
+        "promotion_gate": {
+          "candidate_mae": 1.072,
+          "folds": 4,
+          "locked_test_improvement_pct": -72.8,
+          "naive_mae": 0.621,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.54,
+        "robust_z": -0.767,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 73,
+        "variance_pct": -19.4
+      }
+    },
+    {
+      "as_of": "2020-03-17T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.4,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.142
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_5b99091d331913"
+        ],
+        "expected_mj_m2": 2.79,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.988,
+        "p90_mj_m2": 3.888,
+        "promotion_gate": {
+          "candidate_mae": 1.12,
+          "folds": 4,
+          "locked_test_improvement_pct": -86.1,
+          "naive_mae": 0.602,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.39,
+        "robust_z": -0.537,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 74,
+        "variance_pct": -14.0
+      }
+    },
+    {
+      "as_of": "2020-03-18T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.04,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.808
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_668f696e34aac5"
+        ],
+        "expected_mj_m2": 2.76,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.967,
+        "p90_mj_m2": 3.857,
+        "promotion_gate": {
+          "candidate_mae": 1.088,
+          "folds": 4,
+          "locked_test_improvement_pct": -79.7,
+          "naive_mae": 0.606,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.72,
+        "robust_z": -0.981,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 75,
+        "variance_pct": -26.1
+      }
+    },
+    {
+      "as_of": "2020-03-19T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.25,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.85
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_823825b2be1aea"
+        ],
+        "expected_mj_m2": 2.76,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.972,
+        "p90_mj_m2": 3.856,
+        "promotion_gate": {
+          "candidate_mae": 1.089,
+          "folds": 4,
+          "locked_test_improvement_pct": -83.5,
+          "naive_mae": 0.594,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.51,
+        "robust_z": -0.702,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 76,
+        "variance_pct": -18.5
+      }
+    },
+    {
+      "as_of": "2020-03-20T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.95,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 7.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.95
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_11e7ac3871f593"
+        ],
+        "expected_mj_m2": 2.4,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.612,
+        "p90_mj_m2": 3.496,
+        "promotion_gate": {
+          "candidate_mae": 1.197,
+          "folds": 4,
+          "locked_test_improvement_pct": -102.3,
+          "naive_mae": 0.592,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.55,
+        "robust_z": 0.757,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 76,
+        "variance_pct": 22.9
+      }
+    },
+    {
+      "as_of": "2020-03-21T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.3,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.217
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_ebb4e33891c8d4"
+        ],
+        "expected_mj_m2": 2.4,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.62,
+        "p90_mj_m2": 3.495,
+        "promotion_gate": {
+          "candidate_mae": 1.284,
+          "folds": 4,
+          "locked_test_improvement_pct": -102.7,
+          "naive_mae": 0.634,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.9,
+        "robust_z": 1.265,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 77,
+        "variance_pct": 37.5
+      }
+    },
+    {
+      "as_of": "2020-03-22T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.68,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 3.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.283
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_853ca2a94e0ad5"
+        ],
+        "expected_mj_m2": 2.4,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.628,
+        "p90_mj_m2": 3.494,
+        "promotion_gate": {
+          "candidate_mae": 1.323,
+          "folds": 4,
+          "locked_test_improvement_pct": -100.3,
+          "naive_mae": 0.661,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.28,
+        "robust_z": 1.762,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 78,
+        "variance_pct": 53.3
+      }
+    },
+    {
+      "as_of": "2020-03-23T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.55,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.242
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_55c851cdd2e0e1"
+        ],
+        "expected_mj_m2": 2.4,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.577,
+        "p90_mj_m2": 3.493,
+        "promotion_gate": {
+          "candidate_mae": 1.209,
+          "folds": 4,
+          "locked_test_improvement_pct": -81.4,
+          "naive_mae": 0.666,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.15,
+        "robust_z": 1.583,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 79,
+        "variance_pct": 47.9
+      }
+    },
+    {
+      "as_of": "2020-03-24T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.96,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.158
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_06a0df382b2b2c"
+        ],
+        "expected_mj_m2": 2.95,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.08,
+        "p90_mj_m2": 4.042,
+        "promotion_gate": {
+          "candidate_mae": 1.052,
+          "folds": 4,
+          "locked_test_improvement_pct": -84.5,
+          "naive_mae": 0.57,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.01,
+        "robust_z": 0.014,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 80,
+        "variance_pct": 0.3
+      }
+    },
+    {
+      "as_of": "2020-03-25T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.95,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.2
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_e4f45962f7df38"
+        ],
+        "expected_mj_m2": 2.96,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.09,
+        "p90_mj_m2": 4.052,
+        "promotion_gate": {
+          "candidate_mae": 1.006,
+          "folds": 4,
+          "locked_test_improvement_pct": -85.1,
+          "naive_mae": 0.543,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.01,
+        "robust_z": -0.014,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 80,
+        "variance_pct": -0.3
+      }
+    },
+    {
+      "as_of": "2020-03-26T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.12,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.217
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_683bf5330a783a"
+        ],
+        "expected_mj_m2": 2.96,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.11,
+        "p90_mj_m2": 4.051,
+        "promotion_gate": {
+          "candidate_mae": 0.95,
+          "folds": 4,
+          "locked_test_improvement_pct": -77.8,
+          "naive_mae": 0.534,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.16,
+        "robust_z": 0.225,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 81,
+        "variance_pct": 5.4
+      }
+    },
+    {
+      "as_of": "2020-03-27T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.67,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.7
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.192
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_3123a7e608e558"
+        ],
+        "expected_mj_m2": 3.12,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.09,
+        "p90_mj_m2": 4.21,
+        "promotion_gate": {
+          "candidate_mae": 0.852,
+          "folds": 4,
+          "locked_test_improvement_pct": -73.6,
+          "naive_mae": 0.49,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.45,
+        "robust_z": -0.607,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 82,
+        "variance_pct": -14.4
+      }
+    },
+    {
+      "as_of": "2020-03-28T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.57,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 7.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.958
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_466d288c5b7073"
+        ],
+        "expected_mj_m2": 3.12,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.11,
+        "p90_mj_m2": 4.209,
+        "promotion_gate": {
+          "candidate_mae": 0.812,
+          "folds": 4,
+          "locked_test_improvement_pct": -62.2,
+          "naive_mae": 0.501,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.55,
+        "robust_z": -0.735,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 83,
+        "variance_pct": -17.6
+      }
+    },
+    {
+      "as_of": "2020-03-29T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.14,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.175
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_37e928b252fe69"
+        ],
+        "expected_mj_m2": 2.96,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.97,
+        "p90_mj_m2": 4.048,
+        "promotion_gate": {
+          "candidate_mae": 0.822,
+          "folds": 4,
+          "locked_test_improvement_pct": -62.7,
+          "naive_mae": 0.505,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.18,
+        "robust_z": 0.238,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 84,
+        "variance_pct": 6.1
+      }
+    },
+    {
+      "as_of": "2020-03-30T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.37,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 2.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.417
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_270a65a82e1972"
+        ],
+        "expected_mj_m2": 2.96,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.97,
+        "p90_mj_m2": 4.048,
+        "promotion_gate": {
+          "candidate_mae": 0.841,
+          "folds": 4,
+          "locked_test_improvement_pct": -67.9,
+          "naive_mae": 0.501,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.41,
+        "robust_z": 0.542,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 84,
+        "variance_pct": 13.9
+      }
+    },
+    {
+      "as_of": "2020-03-31T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.87,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 4.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.292
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_7d4367e1114f8e"
+        ],
+        "expected_mj_m2": 2.96,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.99,
+        "p90_mj_m2": 4.047,
+        "promotion_gate": {
+          "candidate_mae": 0.769,
+          "folds": 4,
+          "locked_test_improvement_pct": -62.4,
+          "naive_mae": 0.474,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.09,
+        "robust_z": -0.117,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 85,
+        "variance_pct": -3.0
+      }
+    },
+    {
+      "as_of": "2020-04-01T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.96,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 3.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.408
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_52043356b355b9"
+        ],
+        "expected_mj_m2": 2.95,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 2.0,
+        "p90_mj_m2": 4.036,
+        "promotion_gate": {
+          "candidate_mae": 0.753,
+          "folds": 4,
+          "locked_test_improvement_pct": -64.6,
+          "naive_mae": 0.458,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.01,
+        "robust_z": 0.013,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 86,
+        "variance_pct": 0.3
+      }
+    },
+    {
+      "as_of": "2020-04-02T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.34,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.167
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_9f109962ecd383"
+        ],
+        "expected_mj_m2": 2.96,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.925,
+        "p90_mj_m2": 4.045,
+        "promotion_gate": {
+          "candidate_mae": 0.752,
+          "folds": 4,
+          "locked_test_improvement_pct": -73.5,
+          "naive_mae": 0.434,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.62,
+        "robust_z": -0.804,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 87,
+        "variance_pct": -20.9
+      }
+    },
+    {
+      "as_of": "2020-04-03T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.37,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.917
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_92a261dbc76f48"
+        ],
+        "expected_mj_m2": 2.87,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.836,
+        "p90_mj_m2": 3.954,
+        "promotion_gate": {
+          "candidate_mae": 0.752,
+          "folds": 4,
+          "locked_test_improvement_pct": -68.1,
+          "naive_mae": 0.447,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.5,
+        "robust_z": -0.649,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 88,
+        "variance_pct": -17.4
+      }
+    },
+    {
+      "as_of": "2020-04-04T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.28,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.167
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_7e75279fd22c6c"
+        ],
+        "expected_mj_m2": 2.87,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.836,
+        "p90_mj_m2": 3.954,
+        "promotion_gate": {
+          "candidate_mae": 0.788,
+          "folds": 4,
+          "locked_test_improvement_pct": -73.9,
+          "naive_mae": 0.453,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.59,
+        "robust_z": -0.765,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 88,
+        "variance_pct": -20.6
+      }
+    },
+    {
+      "as_of": "2020-04-05T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.04,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.7
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.942
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_0ecc67a300b0f5"
+        ],
+        "expected_mj_m2": 2.87,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.837,
+        "p90_mj_m2": 3.953,
+        "promotion_gate": {
+          "candidate_mae": 0.71,
+          "folds": 4,
+          "locked_test_improvement_pct": -47.7,
+          "naive_mae": 0.481,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.83,
+        "robust_z": -1.087,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 89,
+        "variance_pct": -28.9
+      }
+    },
+    {
+      "as_of": "2020-04-06T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.76,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 12.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.617
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_8bb06baee6c4e5"
+        ],
+        "expected_mj_m2": 2.37,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.338,
+        "p90_mj_m2": 3.452,
+        "promotion_gate": {
+          "candidate_mae": 0.686,
+          "folds": 4,
+          "locked_test_improvement_pct": -39.9,
+          "naive_mae": 0.49,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.61,
+        "robust_z": -0.807,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 90,
+        "variance_pct": -25.7
+      }
+    },
+    {
+      "as_of": "2020-04-07T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.76,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.833
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_78bfd937f54fd6"
+        ],
+        "expected_mj_m2": 2.34,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.309,
+        "p90_mj_m2": 3.421,
+        "promotion_gate": {
+          "candidate_mae": 0.661,
+          "folds": 4,
+          "locked_test_improvement_pct": -30.6,
+          "naive_mae": 0.506,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.58,
+        "robust_z": -0.798,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 91,
+        "variance_pct": -24.8
+      }
+    },
+    {
+      "as_of": "2020-04-08T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.54,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 11.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.675
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_493610003c433a"
+        ],
+        "expected_mj_m2": 2.28,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.25,
+        "p90_mj_m2": 3.36,
+        "promotion_gate": {
+          "candidate_mae": 0.69,
+          "folds": 4,
+          "locked_test_improvement_pct": -34.1,
+          "naive_mae": 0.515,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.74,
+        "robust_z": -1.04,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 92,
+        "variance_pct": -32.5
+      }
+    },
+    {
+      "as_of": "2020-04-09T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.69,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.583
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_89f70cb50dcec2"
+        ],
+        "expected_mj_m2": 2.04,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.01,
+        "p90_mj_m2": 3.12,
+        "promotion_gate": {
+          "candidate_mae": 0.674,
+          "folds": 4,
+          "locked_test_improvement_pct": -32.7,
+          "naive_mae": 0.508,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.35,
+        "robust_z": -0.492,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 92,
+        "variance_pct": -17.2
+      }
+    },
+    {
+      "as_of": "2020-04-10T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.95,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.792
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_9d1d454f3380c9"
+        ],
+        "expected_mj_m2": 1.76,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.75,
+        "p90_mj_m2": 2.838,
+        "promotion_gate": {
+          "candidate_mae": 0.729,
+          "folds": 4,
+          "locked_test_improvement_pct": -46.0,
+          "naive_mae": 0.5,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.19,
+        "robust_z": 0.267,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 93,
+        "variance_pct": 10.8
+      }
+    },
+    {
+      "as_of": "2020-04-11T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.74,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.767
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_c34efcdc14a4db"
+        ],
+        "expected_mj_m2": 1.76,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.77,
+        "p90_mj_m2": 2.836,
+        "promotion_gate": {
+          "candidate_mae": 0.719,
+          "folds": 4,
+          "locked_test_improvement_pct": -52.9,
+          "naive_mae": 0.47,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.02,
+        "robust_z": -0.028,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 94,
+        "variance_pct": -1.1
+      }
+    },
+    {
+      "as_of": "2020-04-12T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.66,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 12.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.667
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_41ea78e0073cf2"
+        ],
+        "expected_mj_m2": 1.76,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.79,
+        "p90_mj_m2": 2.834,
+        "promotion_gate": {
+          "candidate_mae": 0.632,
+          "folds": 4,
+          "locked_test_improvement_pct": -39.5,
+          "naive_mae": 0.453,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.1,
+        "robust_z": -0.142,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 95,
+        "variance_pct": -5.7
+      }
+    },
+    {
+      "as_of": "2020-04-13T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.52,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.758
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_38f2ea45b6e607"
+        ],
+        "expected_mj_m2": 1.74,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.79,
+        "p90_mj_m2": 2.812,
+        "promotion_gate": {
+          "candidate_mae": 0.651,
+          "folds": 4,
+          "locked_test_improvement_pct": -40.6,
+          "naive_mae": 0.463,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.78,
+        "robust_z": 1.096,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 96,
+        "variance_pct": 44.8
+      }
+    },
+    {
+      "as_of": "2020-04-14T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.63,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.15
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_241924ca2bf2ca"
+        ],
+        "expected_mj_m2": 1.74,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.79,
+        "p90_mj_m2": 2.812,
+        "promotion_gate": {
+          "candidate_mae": 0.675,
+          "folds": 4,
+          "locked_test_improvement_pct": -40.6,
+          "naive_mae": 0.48,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.89,
+        "robust_z": 1.251,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 96,
+        "variance_pct": 51.1
+      }
+    },
+    {
+      "as_of": "2020-04-15T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.24,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.233
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_d0e7282f5b3791"
+        ],
+        "expected_mj_m2": 1.74,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.81,
+        "p90_mj_m2": 2.81,
+        "promotion_gate": {
+          "candidate_mae": 0.542,
+          "folds": 4,
+          "locked_test_improvement_pct": -16.8,
+          "naive_mae": 0.464,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.5,
+        "robust_z": 0.681,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 97,
+        "variance_pct": 28.7
+      }
+    },
+    {
+      "as_of": "2020-04-16T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.79,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.967
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_55abcbc07b8b13"
+        ],
+        "expected_mj_m2": 1.95,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.04,
+        "p90_mj_m2": 3.034,
+        "promotion_gate": {
+          "candidate_mae": 0.37,
+          "folds": 4,
+          "locked_test_improvement_pct": 11.6,
+          "naive_mae": 0.419,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.16,
+        "robust_z": -0.212,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 98,
+        "variance_pct": -8.2
+      }
+    },
+    {
+      "as_of": "2020-04-17T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.18,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 11.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.742
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_5d924ba768af51"
+        ],
+        "expected_mj_m2": 1.95,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.06,
+        "p90_mj_m2": 3.043,
+        "promotion_gate": {
+          "candidate_mae": 0.321,
+          "folds": 4,
+          "locked_test_improvement_pct": 16.1,
+          "naive_mae": 0.382,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.23,
+        "robust_z": 0.301,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 99,
+        "variance_pct": 11.8
+      }
+    },
+    {
+      "as_of": "2020-04-18T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.13,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.7
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.942
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_0b10797fd29d83"
+        ],
+        "expected_mj_m2": 2.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.31,
+        "p90_mj_m2": 3.272,
+        "promotion_gate": {
+          "candidate_mae": 0.342,
+          "folds": 4,
+          "locked_test_improvement_pct": 10.8,
+          "naive_mae": 0.384,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.05,
+        "robust_z": -0.066,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 100,
+        "variance_pct": -2.3
+      }
+    },
+    {
+      "as_of": "2020-04-19T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.91,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 11.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.717
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_42ffa24c2d2e3e"
+        ],
+        "expected_mj_m2": 2.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.31,
+        "p90_mj_m2": 3.272,
+        "promotion_gate": {
+          "candidate_mae": 0.343,
+          "folds": 4,
+          "locked_test_improvement_pct": 9.5,
+          "naive_mae": 0.38,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.27,
+        "robust_z": -0.357,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 100,
+        "variance_pct": -12.4
+      }
+    },
+    {
+      "as_of": "2020-04-20T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.07,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.808
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_71d79fb0cf0566"
+        ],
+        "expected_mj_m2": 2.18,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.33,
+        "p90_mj_m2": 3.271,
+        "promotion_gate": {
+          "candidate_mae": 0.367,
+          "folds": 4,
+          "locked_test_improvement_pct": 4.4,
+          "naive_mae": 0.383,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.11,
+        "robust_z": -0.144,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 101,
+        "variance_pct": -5.0
+      }
+    },
+    {
+      "as_of": "2020-04-21T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.8,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.575
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_4c4acc6c33be35"
+        ],
+        "expected_mj_m2": 2.13,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.3,
+        "p90_mj_m2": 3.22,
+        "promotion_gate": {
+          "candidate_mae": 0.343,
+          "folds": 4,
+          "locked_test_improvement_pct": 11.9,
+          "naive_mae": 0.39,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.33,
+        "robust_z": -0.436,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 102,
+        "variance_pct": -15.5
+      }
+    },
+    {
+      "as_of": "2020-04-22T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.87,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.492
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_ae6bd6f56108fc"
+        ],
+        "expected_mj_m2": 2.07,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.241,
+        "p90_mj_m2": 3.159,
+        "promotion_gate": {
+          "candidate_mae": 0.364,
+          "folds": 4,
+          "locked_test_improvement_pct": 4.4,
+          "naive_mae": 0.38,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.2,
+        "robust_z": -0.27,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 103,
+        "variance_pct": -9.7
+      }
+    },
+    {
+      "as_of": "2020-04-23T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.93,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.492
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_b6656e82e2c436"
+        ],
+        "expected_mj_m2": 1.91,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.082,
+        "p90_mj_m2": 2.998,
+        "promotion_gate": {
+          "candidate_mae": 0.385,
+          "folds": 4,
+          "locked_test_improvement_pct": -6.9,
+          "naive_mae": 0.36,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.02,
+        "robust_z": 0.026,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 104,
+        "variance_pct": 1.0
+      }
+    },
+    {
+      "as_of": "2020-04-24T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.46,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 12.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.542
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_dde87235b95280"
+        ],
+        "expected_mj_m2": 1.93,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.102,
+        "p90_mj_m2": 3.018,
+        "promotion_gate": {
+          "candidate_mae": 0.416,
+          "folds": 4,
+          "locked_test_improvement_pct": -13.5,
+          "naive_mae": 0.366,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.53,
+        "robust_z": 0.701,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 104,
+        "variance_pct": 27.5
+      }
+    },
+    {
+      "as_of": "2020-04-25T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.78,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.9
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_42b9e120eaf983"
+        ],
+        "expected_mj_m2": 1.93,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.103,
+        "p90_mj_m2": 3.017,
+        "promotion_gate": {
+          "candidate_mae": 0.473,
+          "folds": 4,
+          "locked_test_improvement_pct": -21.1,
+          "naive_mae": 0.391,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.85,
+        "robust_z": 1.147,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 105,
+        "variance_pct": 44.0
+      }
+    },
+    {
+      "as_of": "2020-04-26T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.27,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.008
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_fe11003ec7fb68"
+        ],
+        "expected_mj_m2": 1.93,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.104,
+        "p90_mj_m2": 3.016,
+        "promotion_gate": {
+          "candidate_mae": 0.485,
+          "folds": 4,
+          "locked_test_improvement_pct": -24.9,
+          "naive_mae": 0.389,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.34,
+        "robust_z": 0.468,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 106,
+        "variance_pct": 17.6
+      }
+    },
+    {
+      "as_of": "2020-04-27T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.69,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.825
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_9553fb07c0759c"
+        ],
+        "expected_mj_m2": 2.07,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.245,
+        "p90_mj_m2": 3.155,
+        "promotion_gate": {
+          "candidate_mae": 0.45,
+          "folds": 4,
+          "locked_test_improvement_pct": -12.6,
+          "naive_mae": 0.399,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.38,
+        "robust_z": -0.534,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 107,
+        "variance_pct": -18.4
+      }
+    },
+    {
+      "as_of": "2020-04-28T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 3.93,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.742
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_24774de8152abb"
+        ],
+        "expected_mj_m2": 1.93,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.106,
+        "p90_mj_m2": 3.014,
+        "promotion_gate": {
+          "candidate_mae": 0.472,
+          "folds": 4,
+          "locked_test_improvement_pct": 0.1,
+          "naive_mae": 0.473,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 2.0,
+        "robust_z": 2.87,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 108,
+        "variance_pct": 103.6
+      }
+    },
+    {
+      "as_of": "2020-04-29T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.45,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.917
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_8ba92678a48e1c"
+        ],
+        "expected_mj_m2": 2.27,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.446,
+        "p90_mj_m2": 3.354,
+        "promotion_gate": {
+          "candidate_mae": 0.451,
+          "folds": 4,
+          "locked_test_improvement_pct": 2.4,
+          "naive_mae": 0.462,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.18,
+        "robust_z": 0.258,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 108,
+        "variance_pct": 7.9
+      }
+    },
+    {
+      "as_of": "2020-04-30T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.9,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.4
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.717
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_d077d6b25de952"
+        ],
+        "expected_mj_m2": 2.45,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.627,
+        "p90_mj_m2": 3.533,
+        "promotion_gate": {
+          "candidate_mae": 0.423,
+          "folds": 4,
+          "locked_test_improvement_pct": 7.9,
+          "naive_mae": 0.46,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.55,
+        "robust_z": -0.773,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 109,
+        "variance_pct": -22.4
+      }
+    },
+    {
+      "as_of": "2020-05-01T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.66,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.783
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_d9331f54e7f702"
+        ],
+        "expected_mj_m2": 2.45,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.628,
+        "p90_mj_m2": 3.532,
+        "promotion_gate": {
+          "candidate_mae": 0.475,
+          "folds": 4,
+          "locked_test_improvement_pct": -5.7,
+          "naive_mae": 0.45,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.21,
+        "robust_z": 0.295,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 110,
+        "variance_pct": 8.6
+      }
+    },
+    {
+      "as_of": "2020-05-02T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.85,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.733
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_9a5fa2bfd50d86"
+        ],
+        "expected_mj_m2": 2.45,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.629,
+        "p90_mj_m2": 3.531,
+        "promotion_gate": {
+          "candidate_mae": 0.468,
+          "folds": 4,
+          "locked_test_improvement_pct": -4.0,
+          "naive_mae": 0.45,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.6,
+        "robust_z": -0.826,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 111,
+        "variance_pct": -24.5
+      }
+    },
+    {
+      "as_of": "2020-05-03T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.63,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.75
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_f69c307b361835"
+        ],
+        "expected_mj_m2": 2.27,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.44,
+        "p90_mj_m2": 3.35,
+        "promotion_gate": {
+          "candidate_mae": 0.468,
+          "folds": 4,
+          "locked_test_improvement_pct": -5.6,
+          "naive_mae": 0.443,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.64,
+        "robust_z": -0.881,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 112,
+        "variance_pct": -28.2
+      }
+    },
+    {
+      "as_of": "2020-05-04T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.02,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 10.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.675
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_f86e4f5f05e9f4"
+        ],
+        "expected_mj_m2": 1.9,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.07,
+        "p90_mj_m2": 2.98,
+        "promotion_gate": {
+          "candidate_mae": 0.506,
+          "folds": 4,
+          "locked_test_improvement_pct": -17.1,
+          "naive_mae": 0.432,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.12,
+        "robust_z": 0.165,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 112,
+        "variance_pct": 6.3
+      }
+    },
+    {
+      "as_of": "2020-05-05T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.08,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.3
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.892
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_461dd5437402c2"
+        ],
+        "expected_mj_m2": 2.02,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.191,
+        "p90_mj_m2": 3.098,
+        "promotion_gate": {
+          "candidate_mae": 0.524,
+          "folds": 4,
+          "locked_test_improvement_pct": -26.9,
+          "naive_mae": 0.413,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.06,
+        "robust_z": 0.083,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 113,
+        "variance_pct": 3.0
+      }
+    },
+    {
+      "as_of": "2020-05-06T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.78,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.9
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_2cddf1e5303217"
+        ],
+        "expected_mj_m2": 2.02,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.192,
+        "p90_mj_m2": 3.096,
+        "promotion_gate": {
+          "candidate_mae": 0.509,
+          "folds": 4,
+          "locked_test_improvement_pct": -26.7,
+          "naive_mae": 0.401,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.24,
+        "robust_z": -0.337,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 114,
+        "variance_pct": -11.9
+      }
+    },
+    {
+      "as_of": "2020-05-07T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.53,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.85
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_8304f81181c04e"
+        ],
+        "expected_mj_m2": 1.9,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.073,
+        "p90_mj_m2": 2.974,
+        "promotion_gate": {
+          "candidate_mae": 0.497,
+          "folds": 4,
+          "locked_test_improvement_pct": -27.8,
+          "naive_mae": 0.389,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.37,
+        "robust_z": -0.509,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 115,
+        "variance_pct": -19.5
+      }
+    },
+    {
+      "as_of": "2020-05-08T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.4,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 12.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.517
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_5d417f48fa0394"
+        ],
+        "expected_mj_m2": 1.85,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 1.024,
+        "p90_mj_m2": 2.922,
+        "promotion_gate": {
+          "candidate_mae": 0.454,
+          "folds": 4,
+          "locked_test_improvement_pct": -15.8,
+          "naive_mae": 0.392,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.45,
+        "robust_z": -0.632,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 116,
+        "variance_pct": -24.3
+      }
+    },
+    {
+      "as_of": "2020-05-09T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.28,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 14.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.35
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_f89185b5d9a6eb"
+        ],
+        "expected_mj_m2": 1.78,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.954,
+        "p90_mj_m2": 2.852,
+        "promotion_gate": {
+          "candidate_mae": 0.433,
+          "folds": 4,
+          "locked_test_improvement_pct": -9.3,
+          "naive_mae": 0.396,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.5,
+        "robust_z": -0.703,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 116,
+        "variance_pct": -28.1
+      }
+    },
+    {
+      "as_of": "2020-05-10T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.18,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 16.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.25
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_6d154e41e215c8"
+        ],
+        "expected_mj_m2": 1.63,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.805,
+        "p90_mj_m2": 2.7,
+        "promotion_gate": {
+          "candidate_mae": 0.449,
+          "folds": 4,
+          "locked_test_improvement_pct": -10.9,
+          "naive_mae": 0.404,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.45,
+        "robust_z": -0.639,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 117,
+        "variance_pct": -27.6
+      }
+    },
+    {
+      "as_of": "2020-05-11T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.7,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.917
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_cd548a2c773050"
+        ],
+        "expected_mj_m2": 1.53,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.706,
+        "p90_mj_m2": 2.598,
+        "promotion_gate": {
+          "candidate_mae": 0.528,
+          "folds": 4,
+          "locked_test_improvement_pct": -29.0,
+          "naive_mae": 0.409,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.17,
+        "robust_z": 0.239,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 118,
+        "variance_pct": 11.1
+      }
+    },
+    {
+      "as_of": "2020-05-12T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.64,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.067
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_351b223bacf1c3"
+        ],
+        "expected_mj_m2": 1.53,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.707,
+        "p90_mj_m2": 2.596,
+        "promotion_gate": {
+          "candidate_mae": 0.551,
+          "folds": 4,
+          "locked_test_improvement_pct": -34.6,
+          "naive_mae": 0.41,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.11,
+        "robust_z": 0.156,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 119,
+        "variance_pct": 7.2
+      }
+    },
+    {
+      "as_of": "2020-05-13T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.94,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.017
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_cd2c4e9cf5b7a4"
+        ],
+        "expected_mj_m2": 1.53,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.708,
+        "p90_mj_m2": 2.594,
+        "promotion_gate": {
+          "candidate_mae": 0.572,
+          "folds": 4,
+          "locked_test_improvement_pct": -43.9,
+          "naive_mae": 0.397,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.41,
+        "robust_z": 0.576,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 120,
+        "variance_pct": 26.8
+      }
+    },
+    {
+      "as_of": "2020-05-14T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 2.01,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 5.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.2
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_cd5dbc92b0e01f"
+        ],
+        "expected_mj_m2": 1.53,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.708,
+        "p90_mj_m2": 2.594,
+        "promotion_gate": {
+          "candidate_mae": 0.619,
+          "folds": 4,
+          "locked_test_improvement_pct": -54.9,
+          "naive_mae": 0.4,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.48,
+        "robust_z": 0.674,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 120,
+        "variance_pct": 31.4
+      }
+    },
+    {
+      "as_of": "2020-05-15T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.69,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 6.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 1.175
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_253bcd18e376ad"
+        ],
+        "expected_mj_m2": 1.64,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.819,
+        "p90_mj_m2": 2.702,
+        "promotion_gate": {
+          "candidate_mae": 0.622,
+          "folds": 4,
+          "locked_test_improvement_pct": -66.9,
+          "naive_mae": 0.373,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.05,
+        "robust_z": 0.07,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 121,
+        "variance_pct": 3.0
+      }
+    },
+    {
+      "as_of": "2020-05-16T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.28,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 9.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.875
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_9cd12fae084cb0"
+        ],
+        "expected_mj_m2": 1.69,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.87,
+        "p90_mj_m2": 2.75,
+        "promotion_gate": {
+          "candidate_mae": 0.585,
+          "folds": 4,
+          "locked_test_improvement_pct": -58.1,
+          "naive_mae": 0.37,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.41,
+        "robust_z": -0.564,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 122,
+        "variance_pct": -24.3
+      }
+    },
+    {
+      "as_of": "2020-05-17T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.21,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 8.8
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.958
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_0077886fd4b147"
+        ],
+        "expected_mj_m2": 1.69,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.878,
+        "p90_mj_m2": 2.748,
+        "promotion_gate": {
+          "candidate_mae": 0.628,
+          "folds": 4,
+          "locked_test_improvement_pct": -65.0,
+          "naive_mae": 0.38,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.48,
+        "robust_z": -0.668,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 123,
+        "variance_pct": -28.4
+      }
+    },
+    {
+      "as_of": "2020-05-18T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.99,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 12.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.65
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_ec0fe5a5826e4f"
+        ],
+        "expected_mj_m2": 1.69,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.886,
+        "p90_mj_m2": 2.746,
+        "promotion_gate": {
+          "candidate_mae": 0.597,
+          "folds": 4,
+          "locked_test_improvement_pct": -51.1,
+          "naive_mae": 0.395,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.7,
+        "robust_z": -0.964,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 124,
+        "variance_pct": -41.4
+      }
+    },
+    {
+      "as_of": "2020-05-19T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.64,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.0
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.608
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_840354a56d3521"
+        ],
+        "expected_mj_m2": 1.64,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.836,
+        "p90_mj_m2": 2.696,
+        "promotion_gate": {
+          "candidate_mae": 0.592,
+          "folds": 4,
+          "locked_test_improvement_pct": -42.8,
+          "naive_mae": 0.414,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -1.0,
+        "robust_z": -1.377,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 124,
+        "variance_pct": -61.0
+      }
+    },
+    {
+      "as_of": "2020-05-20T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.81,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.592
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_816e7199d060a2"
+        ],
+        "expected_mj_m2": 1.28,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.484,
+        "p90_mj_m2": 2.334,
+        "promotion_gate": {
+          "candidate_mae": 0.572,
+          "folds": 4,
+          "locked_test_improvement_pct": -33.7,
+          "naive_mae": 0.427,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.47,
+        "robust_z": -0.66,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 125,
+        "variance_pct": -36.7
+      }
+    },
+    {
+      "as_of": "2020-05-21T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.7,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 16.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.342
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_323b046fa18bed"
+        ],
+        "expected_mj_m2": 1.21,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.422,
+        "p90_mj_m2": 2.262,
+        "promotion_gate": {
+          "candidate_mae": 0.597,
+          "folds": 4,
+          "locked_test_improvement_pct": -37.2,
+          "naive_mae": 0.435,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.51,
+        "robust_z": -0.732,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 126,
+        "variance_pct": -42.1
+      }
+    },
+    {
+      "as_of": "2020-05-22T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.13,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 20.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.017
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_2cd5fb81026561"
+        ],
+        "expected_mj_m2": 0.99,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.21,
+        "p90_mj_m2": 2.04,
+        "promotion_gate": {
+          "candidate_mae": 0.64,
+          "folds": 4,
+          "locked_test_improvement_pct": -39.5,
+          "naive_mae": 0.458,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.86,
+        "robust_z": -1.234,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 127,
+        "variance_pct": -86.9
+      }
+    },
+    {
+      "as_of": "2020-05-23T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.71,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 14.9
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.45
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_d694fef64a4ca7"
+        ],
+        "expected_mj_m2": 0.81,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.038,
+        "p90_mj_m2": 1.858,
+        "promotion_gate": {
+          "candidate_mae": 0.618,
+          "folds": 4,
+          "locked_test_improvement_pct": -36.9,
+          "naive_mae": 0.451,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.1,
+        "robust_z": -0.147,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 128,
+        "variance_pct": -12.3
+      }
+    },
+    {
+      "as_of": "2020-05-24T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.9,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.1
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.6
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_d5d61a1fba7ace"
+        ],
+        "expected_mj_m2": 0.71,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": -0.062,
+        "p90_mj_m2": 1.758,
+        "promotion_gate": {
+          "candidate_mae": 0.645,
+          "folds": 4,
+          "locked_test_improvement_pct": -36.2,
+          "naive_mae": 0.474,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 1.19,
+        "robust_z": 1.745,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 128,
+        "variance_pct": 167.6
+      }
+    },
+    {
+      "as_of": "2020-05-25T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.87,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 14.2
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.508
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_3a525f51926b18"
+        ],
+        "expected_mj_m2": 0.71,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": -0.054,
+        "p90_mj_m2": 1.756,
+        "promotion_gate": {
+          "candidate_mae": 0.731,
+          "folds": 4,
+          "locked_test_improvement_pct": -54.8,
+          "naive_mae": 0.472,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.16,
+        "robust_z": 0.235,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 129,
+        "variance_pct": 22.5
+      }
+    },
+    {
+      "as_of": "2020-05-26T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 1.03,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.558
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_6492b0196a1f57"
+        ],
+        "expected_mj_m2": 0.71,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": -0.046,
+        "p90_mj_m2": 1.754,
+        "promotion_gate": {
+          "candidate_mae": 0.777,
+          "folds": 4,
+          "locked_test_improvement_pct": -61.3,
+          "naive_mae": 0.482,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.32,
+        "robust_z": 0.469,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 130,
+        "variance_pct": 45.1
+      }
+    },
+    {
+      "as_of": "2020-05-27T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.56,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.6
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.558
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_06f89dfa797a35"
+        ],
+        "expected_mj_m2": 0.81,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.062,
+        "p90_mj_m2": 1.852,
+        "promotion_gate": {
+          "candidate_mae": 0.863,
+          "folds": 4,
+          "locked_test_improvement_pct": -82.5,
+          "naive_mae": 0.473,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": -0.25,
+        "robust_z": -0.367,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 131,
+        "variance_pct": -30.9
+      }
+    },
+    {
+      "as_of": "2020-05-28T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.95,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 13.5
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.567
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_000ba7c162492b"
+        ],
+        "expected_mj_m2": 0.71,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": -0.03,
+        "p90_mj_m2": 1.75,
+        "promotion_gate": {
+          "candidate_mae": 0.635,
+          "folds": 4,
+          "locked_test_improvement_pct": -39.6,
+          "naive_mae": 0.455,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.24,
+        "robust_z": 0.344,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 132,
+        "variance_pct": 33.8
+      }
+    },
+    {
+      "as_of": "2020-05-29T00:00:00+00:00",
+      "baseline": {
+        "actual_mj_m2": 0.97,
+        "anomaly": false,
+        "candidate_promoted": false,
+        "confidence": "high",
+        "contributors": [
+          {
+            "metric": "Tout",
+            "unit": "degC",
+            "value": 12.7
+          },
+          {
+            "metric": "heating_degree_hours",
+            "unit": "degC*h",
+            "value": 0.633
+          },
+          {
+            "metric": "lighting_hours",
+            "unit": "h",
+            "value": 0.0
+          }
+        ],
+        "evidence_ids": [
+          "ev_2d403216229fa7"
+        ],
+        "expected_mj_m2": 0.87,
+        "model_version": "energy-baseline-2.1.0",
+        "p10_mj_m2": 0.13,
+        "p90_mj_m2": 1.91,
+        "promotion_gate": {
+          "candidate_mae": 0.634,
+          "folds": 4,
+          "locked_test_improvement_pct": -42.8,
+          "naive_mae": 0.444,
+          "no_fold_over_20pct_worse": false,
+          "required_improvement_pct": 5
+        },
+        "residual_mj_m2": 0.1,
+        "robust_z": 0.144,
+        "selected_model": "rolling_7d_median",
+        "status": "ready",
+        "training_days": 132,
+        "variance_pct": 11.5
+      }
+    }
+  ],
+  "schema_version": 1,
+  "selection_rule": "latest as_of less than or equal to replay cursor"
+}

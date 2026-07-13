@@ -1,0 +1,20 @@
+{
+  "artifact_id": "energy-baseline-2.1.0-59c705f88647",
+  "artifact_kind": "daily_walk_forward_baseline",
+  "coverage": {
+    "end": "2020-05-29T00:00:00+00:00",
+    "prediction_count": 166,
+    "start": "2019-12-16T00:00:00+00:00"
+  },
+  "data_version": "wageningen-reference-2020-v1",
+  "definitions_version": "2.2.0",
+  "files": {
+    "model-card.md": "1c0dc7779feeb2666e5134c69c842006e39efb8a3c4dc3dcaec121836900ffe4",
+    "model.json": "8921cf8d20b57ace9f2b658075a6ee8c733f7b555cf9b64d969c86b2e7a9b6de",
+    "predictions.json": "59c705f88647a181000b2c67a47a3830197e40b042ed98cbf2ceab4f8085bd12"
+  },
+  "future_safe": true,
+  "model_version": "energy-baseline-2.1.0",
+  "schema_version": 1,
+  "source_dataset_sha256": "f34cf4917586d8fbde54d8f6c911a4b22181341077f210654e357e5184576753"
+}

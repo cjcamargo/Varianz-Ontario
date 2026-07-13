@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from .agent import AgentUnavailable, explain_operational
 from .analytics import operational_snapshot
+from .baseline_artifact import baseline_artifact_status, get_baseline_artifact
 from .auth import Principal, current_principal
 from .config import settings
 from .dataset import quality_report
@@ -61,6 +62,7 @@ async def lifespan(_: FastAPI):
     # Accept health/readiness traffic immediately while the immutable Supabase
     # demo history is loaded in the background. This removes the cold-start
     # deadlock between Render's health check and the first authenticated request.
+    get_baseline_artifact()
     warmup = asyncio.create_task(_warm_operational_data())
     yield
     if not warmup.done():
@@ -247,7 +249,7 @@ def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
 def health():
     return {
         "status": "ok", "environment": settings.environment, "version": "0.2.0",
-        "data_ready": _data_is_ready(),
+        "data_ready": _data_is_ready(), "baseline_artifact": baseline_artifact_status(),
     }
 
 
@@ -259,7 +261,7 @@ def readiness():
             content={"ready": False, "state": "loading_operational_history"},
             headers={"Retry-After": "3"},
         )
-    return {"ready": True, "state": "ready"}
+    return {"ready": True, "state": "ready", "baseline_artifact": baseline_artifact_status()}
 
 
 @api.get("/demo/profile")
