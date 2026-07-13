@@ -52,14 +52,22 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
   useEffect(()=>{if(!data?.playing)return;const timer=setInterval(()=>refresh(data.session_id),2000);return()=>clearInterval(timer)},[data?.playing,data?.session_id,refresh]);
   useEffect(()=>{
     if(view!=="energy"||!data)return;
-    setEnergyData(null);
-    const controller=new AbortController();
-    apiFetch(`/replay-sessions/${data.session_id}/energy-resources?window=${windowKey}&grain=${energyGrain}`,{signal:controller.signal})
-      .then(response=>{if(!response.ok)throw new Error("Energy analytics unavailable");return response.json()})
-      .then(setEnergyData)
-      .catch(event=>{if(event?.name!=="AbortError")setError(event instanceof Error?event.message:"Energy analytics unavailable")});
-    return()=>controller.abort();
-  },[apiFetch,data?.cursor,data?.session_id,energyGrain,view,windowKey]);
+    let active=true,inFlight=false;
+    const loadEnergy=async()=>{
+      if(inFlight)return;inFlight=true;
+      try{
+        const response=await apiFetch(`/replay-sessions/${data.session_id}/energy-resources?window=${windowKey}&grain=${energyGrain}`);
+        if(response.status===401){await onSignOut();return}
+        if(!response.ok)throw new Error("Energy analytics unavailable");
+        const next:Snapshot=await response.json();
+        if(active){setEnergyData(next);setError("")}
+      }catch(event){if(active)setError(event instanceof Error?event.message:"Energy analytics unavailable")}
+      finally{inFlight=false}
+    };
+    void loadEnergy();
+    const timer=data.playing?setInterval(()=>void loadEnergy(),5000):undefined;
+    return()=>{active=false;if(timer)clearInterval(timer)};
+  },[apiFetch,data?.playing,data?.revision,data?.session_id,energyGrain,onSignOut,view,windowKey]);
 
   async function mutate(action:string,value?:number|string){
     if(!data||mutationInFlightRef.current)return;
@@ -101,6 +109,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
   }
 
   const k=data?.kpis||{},baseline=data?.baseline||{},top=data?.anomalies?.[0];
+  const visibleEnergy=energyData?.session_id===data?.session_id?energyData:null;
   return <div className="app-shell">
     <Sidebar view={view} setView={setView} k={k} userEmail={userEmail} onSignOut={onSignOut}/>
     <main className="workspace">
@@ -108,7 +117,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       {error?<section className="error-banner">{error}<button onClick={()=>setError("")}>×</button></section>:null}
       {loading&&!data?<div className="loading"><span/>Building point-in-time analytics…</div>:null}
       {data&&view==="overview"?<OverviewView data={data} k={k} baseline={baseline} top={top} setView={setView} ask={ask}/>:null}
-      {data&&view==="energy"?<EnergyView data={energyData||data} k={(energyData||data).kpis} baseline={(energyData||data).baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain}/>:null}
+      {data&&view==="energy"?(visibleEnergy?<EnergyView data={visibleEnergy} k={visibleEnergy.kpis} baseline={visibleEnergy.baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain}/>:<div className="loading"><span/>Loading energy analytics…</div>):null}
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}
       {data&&view==="anomalies"?<AnomaliesView data={data} focus={focus} setFocus={setFocus} ask={ask}/>:null}
       {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} ask={ask}/>:null}
