@@ -1,12 +1,42 @@
+import { useEffect, useRef, useState } from "react";
 import { ChatMessage, Snapshot } from "../lib/types";
 import { date } from "../lib/format";
 
 type AssistantProps = {
   data:Snapshot; question:string; setQuestion:(q:string)=>void;
-  messages:ChatMessage[]; asking:boolean; ask:(custom?:string,anomalyId?:string)=>void;
+  messages:ChatMessage[]; asking:boolean; transcribing:boolean;
+  ask:(custom?:string,anomalyId?:string)=>void; onVoice:(audio:Blob)=>Promise<void>;
 };
 
-export function AssistantView({data,question,setQuestion,messages,asking,ask}:AssistantProps){
+function VoiceRecorder({busy,onVoice}:{busy:boolean;onVoice:(audio:Blob)=>Promise<void>}){
+  const [recording,setRecording]=useState(false),[error,setError]=useState("");
+  const recorderRef=useRef<MediaRecorder|null>(null),streamRef=useRef<MediaStream|null>(null);
+  const chunksRef=useRef<Blob[]>([]),timerRef=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const stop=()=>{if(timerRef.current)clearTimeout(timerRef.current);timerRef.current=null;const recorder=recorderRef.current;if(recorder&&recorder.state!=="inactive")recorder.stop()};
+  useEffect(()=>()=>{if(timerRef.current)clearTimeout(timerRef.current);const recorder=recorderRef.current;if(recorder&&recorder.state!=="inactive")recorder.stop();streamRef.current?.getTracks().forEach(track=>track.stop())},[]);
+  async function toggle(){
+    if(recording){stop();return}
+    if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==="undefined"){setError("Voice recording is not supported in this browser.");return}
+    try{
+      setError("");
+      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+      streamRef.current=stream;chunksRef.current=[];
+      const candidates=["audio/webm;codecs=opus","audio/mp4","audio/ogg;codecs=opus"];
+      const mimeType=candidates.find(type=>MediaRecorder.isTypeSupported(type));
+      const recorder=new MediaRecorder(stream,mimeType?{mimeType}:undefined);recorderRef.current=recorder;
+      recorder.ondataavailable=event=>{if(event.data.size)chunksRef.current.push(event.data)};
+      recorder.onstop=async()=>{
+        setRecording(false);stream.getTracks().forEach(track=>track.stop());streamRef.current=null;
+        const audio=new Blob(chunksRef.current,{type:recorder.mimeType||"audio/webm"});chunksRef.current=[];
+        if(audio.size)await onVoice(audio);
+      };
+      recorder.start(250);setRecording(true);timerRef.current=setTimeout(stop,60000);
+    }catch{setError("Microphone access was not granted. Allow it in your browser and try again.")}
+  }
+  return <div className="voice-control"><button type="button" className={recording?"voice-button recording":"voice-button"} onClick={toggle} disabled={busy&&!recording} aria-label={recording?"Stop and transcribe voice message":"Start voice message"}><span>{recording?"■":"●"}</span>{recording?"Stop":"Talk"}</button><small>{recording?"Listening — tap Stop when finished":busy?"Transcribing voice…":"Ask Varianz by voice · up to 60 seconds"}</small>{error?<em>{error}</em>:null}</div>;
+}
+
+export function AssistantView({data,question,setQuestion,messages,asking,transcribing,ask,onVoice}:AssistantProps){
   return <section className="assistant-layout">
     <article className="panel assistant-main">
       <div className="assistant-title"><span>✦</span><div><b>VARIANZ AI</b><h2>Operator guidance grounded in current evidence</h2></div></div>
@@ -26,7 +56,8 @@ export function AssistantView({data,question,setQuestion,messages,asking,ask}:As
           </div>)}
         {asking?<div className="chat-message varianz thinking"><span>VARIANZ</span><p>Reviewing current evidence…</p></div>:null}
       </div>
-      <form className="chat-composer" onSubmit={event=>{event.preventDefault();ask()}}><textarea value={question} onChange={event=>setQuestion(event.target.value)} placeholder="Ask a follow-up about energy, climate, resources or an anomaly…"/><button className="primary" disabled={asking||question.trim().length<3}>{asking?"Analyzing…":"Send →"}</button></form>
+      <VoiceRecorder busy={asking||transcribing} onVoice={onVoice}/>
+      <form className="chat-composer" onSubmit={event=>{event.preventDefault();ask()}}><textarea value={question} onChange={event=>setQuestion(event.target.value)} placeholder="Ask a follow-up about energy, climate, resources or an anomaly…"/><button className="primary" disabled={asking||transcribing||question.trim().length<3}>{transcribing?"Transcribing…":asking?"Analyzing…":"Send →"}</button></form>
     </article>
     <aside className="panel evidence-drawer"><span>CURRENT EVIDENCE</span><h3>Replay context</h3><p>{date(data.cursor)}</p><h3>Versions</h3><p>{data.data_version}</p><p>{data.model_version}</p><h3>Metric terminology</h3><p>Official Wageningen dataset definitions · {data.definitions_version}</p><h3>Evidence IDs</h3><div className="chips vertical">{data.evidence_ids.map(id=><span key={id}>{id}</span>)}</div></aside>
   </section>;

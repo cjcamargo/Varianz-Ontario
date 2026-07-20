@@ -430,6 +430,25 @@ class ApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 503)
 
+    def test_voice_transcription_fails_closed_without_server_key(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        with patch.object(settings, "openai_api_key", None):
+            response = client.post(
+                f"/api/v1/replay-sessions/{session['id']}/assistant/transcriptions",
+                files={"audio": ("voice.webm", b"demo-audio", "audio/webm")},
+            )
+        self.assertEqual(response.status_code, 503)
+
+    def test_voice_transcription_rejects_unsupported_media(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        response = client.post(
+            f"/api/v1/replay-sessions/{session['id']}/assistant/transcriptions",
+            files={"audio": ("voice.txt", b"not-audio", "text/plain")},
+        )
+        self.assertEqual(response.status_code, 415)
+
 
 class AuthTests(unittest.TestCase):
     SECRET = "test-supabase-jwt-secret"

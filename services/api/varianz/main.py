@@ -9,7 +9,7 @@ from uuid import UUID
 import httpx
 import pandas as pd
 import psycopg
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
+from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -32,6 +32,7 @@ from .intraday_artifact import get_intraday_artifact, intraday_artifact_status
 from .replay import ReplaySession
 from .store import ORG_ID, SITE_ID, get_operational_data
 from .tariffs import get_tariff, put_tariff
+from .voice import TranscriptionUnavailable, transcribe_audio
 
 
 operational_data_ready = Event()
@@ -86,6 +87,10 @@ app.add_middleware(
 api = APIRouter(prefix="/api/v1")
 sessions: dict[UUID, ReplaySession] = {}
 assistant_histories: dict[UUID, list[dict[str, str]]] = {}
+MAX_VOICE_BYTES = 10 * 1024 * 1024
+VOICE_CONTENT_TYPES = {
+    "audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav", "audio/x-wav",
+}
 
 
 class ReplayMutation(BaseModel):
@@ -676,6 +681,39 @@ def assistant_message(
         raise HTTPException(502, "openai_upstream_error") from exc
     except httpx.RequestError as exc:
         raise HTTPException(503, "openai_connection_unavailable") from exc
+
+
+@api.post("/replay-sessions/{session_id}/assistant/transcriptions")
+async def assistant_transcription(
+    session_id: UUID,
+    audio: UploadFile = File(...),
+    principal: Principal = Depends(current_principal),
+):
+    _session(session_id, principal)
+    content_type = (audio.content_type or "").split(";", 1)[0].lower()
+    if content_type not in VOICE_CONTENT_TYPES:
+        raise HTTPException(415, "unsupported_audio_format")
+    content = await audio.read(MAX_VOICE_BYTES + 1)
+    await audio.close()
+    if not content:
+        raise HTTPException(422, "empty_audio")
+    if len(content) > MAX_VOICE_BYTES:
+        raise HTTPException(413, "audio_too_large")
+    try:
+        result = await transcribe_audio(
+            content,
+            audio.filename or "varianz-voice.webm",
+            content_type,
+            settings,
+        )
+    except TranscriptionUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+    return {
+        "session_id": session_id,
+        "transcript": result["text"],
+        "model": result["model"],
+        "language": "auto",
+    }
 
 
 @api.get("/sites/{site_id}/tariff-profile")
