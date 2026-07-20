@@ -16,7 +16,14 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
 from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
-from varianz.agent import RESPONSE_SCHEMA, _conversation_text, _evidence_json, _response_language
+from varianz.agent import (
+    RESPONSE_SCHEMA,
+    _allowed_evidence,
+    _conversation_text,
+    _evidence_json,
+    _response_language,
+    _valid_claims,
+)
 from varianz.auth import DEMO_USER_ID, verify_supabase_access_token, verify_supabase_jwt
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
 from varianz.energy import (
@@ -78,6 +85,27 @@ class AgentTests(unittest.TestCase):
         )
         self.assertIn('"cursor":"2020-05-20T12:00:00+00:00"', payload)
         self.assertIn('"session_id":"11111111-1111-1111-1111-111111111111"', payload)
+
+    def test_grounding_accepts_nested_efficiency_and_reconstruction_evidence(self):
+        evidence = {
+            "evidence_ids": ["snapshot:24h"],
+            "efficiency": {
+                "heat_degree_intensity": {"evidence_ids": ["enpi:heat-degree"]}
+            },
+            "reconstruction": {"evidence_ids": ["intraday:heat"]},
+        }
+        allowed = _allowed_evidence(evidence)
+        self.assertEqual(
+            allowed, {"snapshot:24h", "enpi:heat-degree", "intraday:heat"}
+        )
+        self.assertTrue(
+            _valid_claims(
+                {"claims": [{"evidence_ids": ["enpi:heat-degree"]}]}, allowed
+            )
+        )
+        self.assertFalse(
+            _valid_claims({"claims": [{"evidence_ids": ["invented:id"]}]}, allowed)
+        )
 
     def test_agent_bundle_excludes_chart_series_and_keeps_focus(self):
         snapshot = {

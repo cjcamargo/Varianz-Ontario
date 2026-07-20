@@ -78,10 +78,21 @@ def _extract_output_text(payload: dict) -> str:
 
 
 def _allowed_evidence(evidence: dict) -> set[str]:
-    allowed = set(evidence.get("evidence_ids", []))
-    allowed.update(evidence.get("baseline", {}).get("evidence_ids", []))
-    for anomaly in evidence.get("anomalies", []):
-        allowed.update(anomaly.get("evidence_ids", []))
+    """Collect every evidence ID actually present in the typed bundle."""
+    allowed: set[str] = set()
+
+    def collect(value: object) -> None:
+        if isinstance(value, dict):
+            ids = value.get("evidence_ids")
+            if isinstance(ids, list):
+                allowed.update(item for item in ids if isinstance(item, str) and item)
+            for child in value.values():
+                collect(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect(child)
+
+    collect(evidence)
     return allowed
 
 
@@ -119,6 +130,7 @@ def _request(
 ) -> tuple[dict, str]:
     response_language = _response_language(question)
     language_name = "Spanish" if response_language == "es" else "English"
+    allowed_evidence = sorted(_allowed_evidence(evidence))
     body = {
         "model": settings.openai_model,
         "instructions": SYSTEM_INSTRUCTIONS,
@@ -126,6 +138,7 @@ def _request(
             f"Conversation context:\n{_conversation_text(history or [])}\n\n"
             f"Current operator question: {question}\n"
             f"Required response language: {language_name} ({response_language}).\n{retry_note}\n"
+            f"Allowed evidence IDs for claims: {json.dumps(allowed_evidence)}\n"
             f"Evidence JSON:\n{_evidence_json(evidence)}"
         ),
         "reasoning": {"effort": settings.openai_reasoning_effort},
