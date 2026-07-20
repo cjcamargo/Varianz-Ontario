@@ -198,8 +198,11 @@ def _performance_accounting(
     target_factor = 1 - float(target["improvement_pct"]) / 100
     cumulative_actual = 0.0
     cumulative_baseline = 0.0
+    cumulative_avoided = 0.0
+    cumulative_excess = 0.0
     series: list[dict] = []
     evaluation_start = None
+    completed_evaluation_days = 0
     try:
         predictions = get_baseline_artifact().predictions
     except BaselineArtifactError:
@@ -216,8 +219,12 @@ def _performance_accounting(
         if actual is None or expected in {None, 0}:
             continue
         evaluation_start = evaluation_start or as_of.isoformat()
+        completed_evaluation_days += 1
         cumulative_actual += float(actual)
         cumulative_baseline += float(expected)
+        variance = float(expected) - float(actual)
+        cumulative_avoided += max(variance, 0)
+        cumulative_excess += max(-variance, 0)
         series.append({
             "time": as_of.isoformat(),
             "actual_cumulative_mj_m2": round(cumulative_actual, 3),
@@ -241,6 +248,9 @@ def _performance_accounting(
         evaluation_start = evaluation_start or day_start.isoformat()
         cumulative_actual += current_actual
         cumulative_baseline += current_baseline
+        current_variance = current_baseline - current_actual
+        cumulative_avoided += max(current_variance, 0)
+        cumulative_excess += max(-current_variance, 0)
         series.append({
             "time": timestamp.isoformat(),
             "actual_cumulative_mj_m2": round(cumulative_actual, 3),
@@ -258,8 +268,12 @@ def _performance_accounting(
         "cumulative_actual_mj_m2": round(cumulative_actual, 4) if cumulative_baseline > 0 else None,
         "cumulative_baseline_mj_m2": round(cumulative_baseline, 4) if cumulative_baseline > 0 else None,
         "cumulative_target_mj_m2": round(cumulative_target, 4) if cumulative_target is not None else None,
+        "cumulative_avoided_mj_m2": round(cumulative_avoided, 4) if cumulative_baseline > 0 else None,
+        "cumulative_excess_mj_m2": round(cumulative_excess, 4) if cumulative_baseline > 0 else None,
         "performance_series": series,
         "evaluation_start": evaluation_start,
+        "completed_evaluation_days": completed_evaluation_days,
+        "current_day_provisional": bool(current_baseline is not None),
         "target": target,
     }
 
@@ -299,6 +313,11 @@ def _business_impact(
 
     heat_variance_cad = None
     cumulative_heat_variance_cad = None
+    cumulative_avoided_heat_cost_cad = None
+    cumulative_excess_heat_cost_cad = None
+    cumulative_net_heat_cost_cad_per_1000m2 = None
+    cumulative_avoided_heat_cost_cad_per_1000m2 = None
+    cumulative_excess_heat_cost_cad_per_1000m2 = None
     remaining_target_potential_cad = None
     target_opportunity_cad = None
     if comparable and tariff and tariff.get("heat_per_mj") is not None:
@@ -312,11 +331,31 @@ def _business_impact(
         cumulative_actual = performance.get("cumulative_actual_mj_m2")
         cumulative_expected = performance.get("cumulative_baseline_mj_m2")
         cumulative_target = performance.get("cumulative_target_mj_m2")
+        cumulative_avoided = performance.get("cumulative_avoided_mj_m2")
+        cumulative_excess = performance.get("cumulative_excess_mj_m2")
         if cumulative_actual is not None and cumulative_expected is not None:
             cumulative_heat_variance_cad = round(
                 (float(cumulative_expected) - float(cumulative_actual))
                 * heat_rate * growing_area_m2,
                 2,
+            )
+            cumulative_net_heat_cost_cad_per_1000m2 = round(
+                (float(cumulative_expected) - float(cumulative_actual)) * heat_rate * 1000,
+                2,
+            )
+        if cumulative_avoided is not None:
+            cumulative_avoided_heat_cost_cad = round(
+                float(cumulative_avoided) * heat_rate * growing_area_m2, 4
+            )
+            cumulative_avoided_heat_cost_cad_per_1000m2 = round(
+                float(cumulative_avoided) * heat_rate * 1000, 2
+            )
+        if cumulative_excess is not None:
+            cumulative_excess_heat_cost_cad = round(
+                float(cumulative_excess) * heat_rate * growing_area_m2, 4
+            )
+            cumulative_excess_heat_cost_cad_per_1000m2 = round(
+                float(cumulative_excess) * heat_rate * 1000, 2
             )
         if cumulative_actual is not None and cumulative_target is not None:
             remaining_target_potential_cad = round(
@@ -363,6 +402,13 @@ def _business_impact(
         "estimated_heat_cost_variance_cad": heat_variance_cad,
         "cumulative_energy_performance_pct": cumulative_performance_pct,
         "cumulative_estimated_heat_cost_variance_cad": cumulative_heat_variance_cad,
+        "cumulative_avoided_mj_m2": performance.get("cumulative_avoided_mj_m2"),
+        "cumulative_excess_mj_m2": performance.get("cumulative_excess_mj_m2"),
+        "cumulative_avoided_heat_cost_cad": cumulative_avoided_heat_cost_cad,
+        "cumulative_excess_heat_cost_cad": cumulative_excess_heat_cost_cad,
+        "cumulative_net_heat_cost_cad_per_1000m2": cumulative_net_heat_cost_cad_per_1000m2,
+        "cumulative_avoided_heat_cost_cad_per_1000m2": cumulative_avoided_heat_cost_cad_per_1000m2,
+        "cumulative_excess_heat_cost_cad_per_1000m2": cumulative_excess_heat_cost_cad_per_1000m2,
         "remaining_target_potential_mj_m2": remaining_target_potential_mj_m2,
         "remaining_target_potential_cad": remaining_target_potential_cad,
         "target_opportunity_cad": target_opportunity_cad,
@@ -382,8 +428,13 @@ def _business_impact(
         "cumulative_target_mj_m2": cumulative_target,
         "performance_series": performance.get("performance_series", []),
         "evaluation_start": performance.get("evaluation_start"),
+        "completed_evaluation_days": performance.get("completed_evaluation_days", 0),
+        "current_day_provisional": performance.get("current_day_provisional", False),
         "current_cost_to_cursor_cad": current_cost_cad,
         "currency": tariff.get("currency") if tariff else None,
+        "heat_tariff_cad_per_mj": tariff.get("heat_per_mj") if tariff else None,
+        "tariff_source": tariff.get("source") if tariff else None,
+        "monetary_status": "configured_scenario" if tariff else "tariff_required",
         "area_basis_m2": growing_area_m2,
         "comparison_as_of": baseline.get("artifact_as_of"),
         "tariff_effective_from": tariff.get("effective_from") if tariff else None,
