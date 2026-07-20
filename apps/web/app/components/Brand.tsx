@@ -17,7 +17,7 @@ export function BrandMark({className=""}:{className?:string}){
 }
 
 export function BrandLockup({variant="sidebar",className=""}:BrandLockupProps){
-  return <div className={`brand-lockup ${variant} ${className}`.trim()} aria-label="Varianz by Operion">
+  return <div className={`brand-lockup brand-${variant} ${className}`.trim()} aria-label="Varianz by Operion">
     <BrandMark className="brand-mark"/>
     <div className="brand-wordmark"><strong>VARIANZ</strong><span><i>by</i> OPERION</span></div>
   </div>;
