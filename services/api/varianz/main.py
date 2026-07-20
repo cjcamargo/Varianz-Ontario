@@ -11,7 +11,7 @@ import pandas as pd
 import psycopg
 from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from .agent import AgentUnavailable, explain_operational
@@ -32,7 +32,7 @@ from .intraday_artifact import get_intraday_artifact, intraday_artifact_status
 from .replay import ReplaySession
 from .store import ORG_ID, SITE_ID, get_operational_data
 from .tariffs import get_tariff, put_tariff
-from .voice import TranscriptionUnavailable, transcribe_audio
+from .voice import SpeechUnavailable, TranscriptionUnavailable, synthesize_speech, transcribe_audio
 
 
 operational_data_ready = Event()
@@ -102,6 +102,11 @@ class ReplayMutation(BaseModel):
 class AgentQuestion(BaseModel):
     question: str = Field(min_length=3, max_length=1000)
     anomaly_id: str | None = None
+
+
+class SpeechRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=3000)
+    language: str = Field(pattern="^(en|es)$")
 
 
 class TouWindow(BaseModel):
@@ -714,6 +719,31 @@ async def assistant_transcription(
         "model": result["model"],
         "language": "auto",
     }
+
+
+@api.post("/replay-sessions/{session_id}/assistant/speech")
+async def assistant_speech(
+    session_id: UUID,
+    request: SpeechRequest,
+    principal: Principal = Depends(current_principal),
+):
+    _session(session_id, principal)
+    try:
+        result = await synthesize_speech(
+            request.text.strip(), request.language, settings
+        )
+    except SpeechUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+    return Response(
+        content=result["audio"],
+        media_type=result["content_type"],
+        headers={
+            "Cache-Control": "private, no-store",
+            "X-Varianz-Speech-Model": result["model"],
+            "X-Varianz-Voice": result["voice"],
+            "X-Varianz-Language": result["language"],
+        },
+    )
 
 
 @api.get("/sites/{site_id}/tariff-profile")

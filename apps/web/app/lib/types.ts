@@ -38,7 +38,7 @@ export type Snapshot = {
 
 export type AssistantResult = {
   recommendation:string; answer:string; claims:{text:string;evidence_ids:string[]}[]; confidence:string;
-  limitations:string[]; suggested_actions:string[]; model:string; evidence_version:string;
+  limitations:string[]; suggested_actions:string[]; model:string; evidence_version:string; language:"en"|"es";
 };
 
 export type ChatMessage = {

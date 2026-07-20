@@ -7,7 +7,7 @@ import time
 import unittest
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from uuid import UUID, uuid4
 
 import numpy as np
@@ -53,6 +53,8 @@ def _mint_jwt(secret: str, subject: str, *, expires_in: int = 3600) -> str:
 class AgentTests(unittest.TestCase):
     def test_agent_contract_leads_with_recommendation(self):
         self.assertIn("recommendation", RESPONSE_SCHEMA["required"])
+        self.assertIn("language", RESPONSE_SCHEMA["required"])
+        self.assertEqual(RESPONSE_SCHEMA["properties"]["language"]["enum"], ["en", "es"])
         self.assertEqual(RESPONSE_SCHEMA["properties"]["suggested_actions"]["maxItems"], 3)
 
     def test_conversation_context_keeps_recent_turns(self):
@@ -448,6 +450,42 @@ class ApiTests(unittest.TestCase):
             files={"audio": ("voice.txt", b"not-audio", "text/plain")},
         )
         self.assertEqual(response.status_code, 415)
+
+    def test_speech_reply_fails_closed_without_server_key(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        with patch.object(settings, "openai_api_key", None):
+            response = client.post(
+                f"/api/v1/replay-sessions/{session['id']}/assistant/speech",
+                json={"text": "Revise el circuito de calefacción.", "language": "es"},
+            )
+        self.assertEqual(response.status_code, 503)
+
+    def test_speech_reply_returns_audio_with_language_metadata(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        result = {
+            "audio": b"demo-mp3", "content_type": "audio/mpeg", "model": "tts-1",
+            "voice": "alloy", "language": "en",
+        }
+        with patch("varianz.main.synthesize_speech", new=AsyncMock(return_value=result)):
+            response = client.post(
+                f"/api/v1/replay-sessions/{session['id']}/assistant/speech",
+                json={"text": "Check the heating circuit.", "language": "en"},
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"demo-mp3")
+        self.assertEqual(response.headers["x-varianz-language"], "en")
+        self.assertEqual(response.headers["cache-control"], "private, no-store")
+
+    def test_speech_reply_rejects_language_outside_mvp(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        response = client.post(
+            f"/api/v1/replay-sessions/{session['id']}/assistant/speech",
+            json={"text": "Bonjour", "language": "fr"},
+        )
+        self.assertEqual(response.status_code, 422)
 
 
 class AuthTests(unittest.TestCase):

@@ -147,6 +147,13 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
     }catch(event){setError(event instanceof Error?event.message:"Voice transcription unavailable")}
     finally{setTranscribing(false)}
   }
+  async function synthesizeVoice(text:string,language:"en"|"es"){
+    if(!data)throw new Error("Replay session unavailable");
+    const response=await apiFetch(`/replay-sessions/${data.session_id}/assistant/speech`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,language})});
+    if(response.status===401){await onSignOut();throw new Error("Session expired")}
+    if(!response.ok)throw new Error("Varianz voice reply is unavailable right now.");
+    return response.blob();
+  }
 
   const k=data?.kpis||{},baseline=data?.baseline||{},top=data?.anomalies?.[0];
   const visibleEnergy=energyData?.session_id===data?.session_id?energyData:null;
@@ -160,7 +167,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       {data&&view==="energy"?(visibleEnergy?<EnergyView data={visibleEnergy} k={visibleEnergy.kpis} baseline={visibleEnergy.baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain} openSettings={()=>setView("settings")}/>:<div className="loading"><span/>Loading energy analytics…</div>):null}
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}
       {data&&view==="anomalies"?<AnomaliesView data={data} focus={focus} setFocus={setFocus} ask={ask}/>:null}
-      {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} transcribing={transcribing} ask={ask} onVoice={transcribeVoice}/>:null}
+      {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} transcribing={transcribing} ask={ask} onVoice={transcribeVoice} onSpeak={synthesizeVoice}/>:null}
       {data&&view==="settings"?<SettingsView siteId={data.site.id} apiFetch={apiFetch} onSaved={async()=>{setEnergyData(null);await refresh(data.session_id)}}/>:null}
     </main>
   </div>

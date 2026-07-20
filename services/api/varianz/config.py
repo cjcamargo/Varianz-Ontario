@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     openai_transcription_model: str = Field(
         "whisper-1", validation_alias="OPENAI_TRANSCRIPTION_MODEL"
     )
+    openai_speech_model: str = Field("tts-1", validation_alias="OPENAI_SPEECH_MODEL")
+    openai_voice: str = Field("alloy", validation_alias="OPENAI_VOICE")
     openai_timeout_seconds: float = Field(60, validation_alias="OPENAI_TIMEOUT_SECONDS")
     openai_max_output_tokens: int = Field(0, validation_alias="OPENAI_MAX_OUTPUT_TOKENS")
     openai_reasoning_effort: str = Field("low", validation_alias="OPENAI_REASONING_EFFORT")
