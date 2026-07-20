@@ -16,7 +16,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parents[1] / "services" / "api"))
 
 from varianz.analytics import dashboard_snapshot, energy_baseline, operational_snapshot
-from varianz.agent import RESPONSE_SCHEMA, _conversation_text, _evidence_json
+from varianz.agent import RESPONSE_SCHEMA, _conversation_text, _evidence_json, _response_language
 from varianz.auth import DEMO_USER_ID, verify_supabase_access_token, verify_supabase_jwt
 from varianz.dataset import load_replay_frame, profile_source, quality_report, read_source
 from varianz.energy import (
@@ -53,9 +53,12 @@ def _mint_jwt(secret: str, subject: str, *, expires_in: int = 3600) -> str:
 class AgentTests(unittest.TestCase):
     def test_agent_contract_leads_with_recommendation(self):
         self.assertIn("recommendation", RESPONSE_SCHEMA["required"])
-        self.assertIn("language", RESPONSE_SCHEMA["required"])
-        self.assertEqual(RESPONSE_SCHEMA["properties"]["language"]["enum"], ["en", "es"])
+        self.assertNotIn("language", RESPONSE_SCHEMA["required"])
         self.assertEqual(RESPONSE_SCHEMA["properties"]["suggested_actions"]["maxItems"], 3)
+
+    def test_response_language_is_determined_without_model_output(self):
+        self.assertEqual(_response_language("¿Qué recomienda para reducir la energía?"), "es")
+        self.assertEqual(_response_language("Explain the current heating deviation."), "en")
 
     def test_conversation_context_keeps_recent_turns(self):
         history = [

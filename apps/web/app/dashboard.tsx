@@ -14,6 +14,18 @@ import { SettingsView } from "./views/SettingsView";
 
 type DashboardProps={accessToken:string;userEmail:string;onSignOut:()=>void};
 
+async function assistantFailure(response:Response):Promise<string>{
+  let detail="";
+  try{const payload=await response.json();detail=typeof payload?.detail==="string"?payload.detail:""}catch{}
+  if(response.status===422)return "Please enter a clear question (3–1000 characters).";
+  if(response.status===502)return "The OpenAI service rejected the interpretation request. Please retry.";
+  if(detail.includes("OPENAI_API_KEY"))return "Varianz AI is not configured on the API deployment.";
+  if(detail.includes("incomplete"))return "The AI response ended before completion. Your question is preserved; please retry.";
+  if(detail.includes("grounded"))return "The response could not be verified against dashboard evidence. Your question is preserved; please retry.";
+  if(detail.includes("connection"))return "The API could not reach OpenAI. Your question is preserved; please retry.";
+  return response.status===503?"Varianz AI is temporarily unavailable. Your question is preserved; please retry.":"Varianz AI could not complete the explanation.";
+}
+
 export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardProps){
   const [view,setView]=useState<View>("overview"),[windowKey,setWindowKey]=useState<WindowKey>("24h");
   const [data,setData]=useState<Snapshot|null>(null),[error,setError]=useState(""),[loading,setLoading]=useState(true);
@@ -122,10 +134,10 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       let result=await send(data.session_id);
       if(result.status===401){await onSignOut();return}
       if(result.status===404){const created=await apiFetch("/replay-sessions",{method:"POST"});if(!created.ok)throw new Error("Could not restore the replay session.");const session=await created.json();await refresh(session.id);result=await send(session.id)}
-      if(!result.ok){const message=result.status===422?"Please enter a clear question (3–1000 characters).":result.status===503?"Varianz AI is unavailable right now — please retry.":result.status===502?"The interpretation model returned an error. Please retry.":"Varianz AI could not complete the explanation";throw new Error(message)}
+      if(!result.ok)throw new Error(await assistantFailure(result));
       const answer:AssistantResult=await result.json();
       setMessages(current=>[...current,{id:crypto.randomUUID(),role:"assistant",text:answer.answer,result:answer}]);setError("");
-    }catch(e){setError(e instanceof Error?e.message:"Assistant unavailable")}finally{setAsking(false)}
+    }catch(e){setQuestion(current=>current||prompt);setError(e instanceof Error?e.message:"Assistant unavailable")}finally{setAsking(false)}
   }
   async function transcribeVoice(audio:Blob){
     if(!data)return;
