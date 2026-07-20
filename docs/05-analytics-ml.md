@@ -14,6 +14,8 @@ Each metric declares ID, label, formula, unit, boundary, source, grain, aggregat
 
 Initial daily metrics: heat/electricity/CO₂/irrigation/drain per m²; total energy; drain ratio; internal temperature/RH/humidity-deficit compliance minutes; setpoint deviation; peak/off-peak electricity share; anomaly minutes. Yield and economic values are explicitly contextual.
 
+Stakeholder energy accounting is point-in-time safe. Current-day heat is reconstructed only to the replay cursor and compared with a provisional intraday reference formed from the median of the previous seven completed days and allocated by their median cumulative heat shape. This avoids using full-day weather, meter totals or other observations after the cursor. Completed EnB-ready days retain the selected weather-normalized daily EnB and are accumulated separately from the current provisional day. The dashboard reports current and cumulative percentage performance, signed cumulative heat cost variance, and actual/EnB/target trajectories. The provisional demo target is 5% below EnB and is explicitly not an ISO-prescribed threshold; remaining target potential is `max(actual cumulative - target cumulative, 0)` and uses the configured heat tariff when expressed in CAD.
+
 ## Intraday energy disaggregation and EnPIs
 
 Model `energy-intraday-1.0.0` disaggregates the authoritative daily meters to five-minute intervals.

@@ -38,7 +38,14 @@ from varianz.energy import (
 )
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
-from varianz.main import _agent_evidence, _business_impact, _cost_tariff, _schedule_tariff, app
+from varianz.main import (
+    _agent_evidence,
+    _business_impact,
+    _cost_tariff,
+    _performance_accounting,
+    _schedule_tariff,
+    app,
+)
 from varianz.config import settings
 
 ZIP = Path(__file__).parents[1] / "Wageningen MVP Dataset.zip"
@@ -452,6 +459,44 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(impact["energy_performance_pct"], -10.0)
         self.assertEqual(impact["status"], "tariff_required")
         self.assertIsNone(impact["estimated_heat_cost_variance_cad"])
+
+    def test_point_in_time_impact_and_cumulative_target_move_with_cursor(self):
+        history_times = pd.to_datetime([
+            "2020-01-31T00:00:00Z", "2020-01-31T06:00:00Z",
+            "2020-01-31T12:00:00Z", "2020-01-31T18:00:00Z",
+        ])
+        current_times = pd.to_datetime([
+            "2020-02-01T00:00:00Z", "2020-02-01T06:00:00Z",
+            "2020-02-01T12:00:00Z",
+        ])
+        frame = pd.DataFrame({
+            "time": [*history_times, *current_times],
+            "heat_mj_m2": [1, 1, 1, 1, 0.5, 0.5, 8],
+        })
+        baseline = {
+            "status": "ready", "actual_mj_m2": 9, "expected_mj_m2": 10,
+            "confidence": "medium", "selected_model": "rolling_7d_median",
+            "evidence_ids": ["ev_baseline"],
+        }
+        tariff = {"currency": "CAD", "heat_per_mj": 0.1, "id": "tariff-1"}
+        with patch("varianz.main.get_baseline_artifact") as artifact:
+            artifact.return_value.predictions = ()
+            at_six = _performance_accounting(
+                baseline, pd.Timestamp("2020-02-01T06:00:00Z").to_pydatetime(),
+                frame[frame.time <= pd.Timestamp("2020-02-01T06:00:00Z")],
+            )
+            at_noon = _performance_accounting(
+                baseline, pd.Timestamp("2020-02-01T12:00:00Z").to_pydatetime(), frame,
+            )
+        impact_six = _business_impact(baseline, tariff, 62.5, performance=at_six)
+        impact_noon = _business_impact(baseline, tariff, 62.5, performance=at_noon)
+        self.assertEqual(impact_six["energy_performance_pct"], 50.0)
+        self.assertEqual(impact_noon["energy_performance_pct"], -200.0)
+        self.assertGreater(impact_six["cumulative_estimated_heat_cost_variance_cad"], 0)
+        self.assertLess(impact_noon["cumulative_estimated_heat_cost_variance_cad"], 0)
+        self.assertEqual(impact_noon["target_improvement_pct"], 5.0)
+        self.assertGreater(impact_noon["remaining_target_potential_cad"], 0)
+        self.assertEqual(len(impact_noon["performance_series"]), 1)
 
     def test_agent_fails_closed_without_server_key(self):
         client = TestClient(app)

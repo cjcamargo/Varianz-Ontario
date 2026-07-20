@@ -22,6 +22,17 @@ export type Snapshot = {
     status:"ready"|"tariff_required"|"baseline_required";
     energy_performance_pct:number|null; performance_state:string; performance_label:string;
     estimated_heat_cost_variance_cad:number|null; current_cost_to_cursor_cad:number|null;
+    cumulative_energy_performance_pct:number|null;
+    cumulative_estimated_heat_cost_variance_cad:number|null;
+    remaining_target_potential_mj_m2:number|null; remaining_target_potential_cad:number|null;
+    target_opportunity_cad:number|null; target_achieved:boolean|null;
+    target_improvement_pct:number; target_version:string; target_status:string; target_source:string;
+    actual_to_cursor_mj_m2:number|null; baseline_to_cursor_mj_m2:number|null;
+    target_to_cursor_mj_m2:number|null; cumulative_actual_mj_m2:number|null;
+    reference_day_fraction:number|null; reference_daily_heat_mj_m2:number|null;
+    intraday_baseline_method:string|null;
+    cumulative_baseline_mj_m2:number|null; cumulative_target_mj_m2:number|null;
+    performance_series:Point[]; evaluation_start:string|null;
     currency:string|null; area_basis_m2:number; comparison_as_of:string|null;
     tariff_effective_from:string|null; confidence:string|null; baseline_model:string|null;
     cost_scope:string; comparison_scope:string; disclaimer:string; tariff_application:string; evidence_ids:string[];

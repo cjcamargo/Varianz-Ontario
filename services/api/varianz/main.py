@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from .agent import AgentUnavailable, explain_operational
 from .analytics import operational_snapshot
-from .baseline_artifact import baseline_artifact_status, get_baseline_artifact
+from .baseline_artifact import BaselineArtifactError, baseline_artifact_status, get_baseline_artifact
 from .auth import Principal, current_principal
 from .config import settings
 from .dataset import quality_report
@@ -37,6 +37,12 @@ from .voice import SpeechUnavailable, TranscriptionUnavailable, synthesize_speec
 
 operational_data_ready = Event()
 operational_warmup_error: str | None = None
+DEMO_ENERGY_TARGET = {
+    "version": "energy-target-demo-1.0.0",
+    "improvement_pct": 5.0,
+    "status": "provisional_demo_target",
+    "source": "Varianz demo management objective",
+}
 
 
 async def _warm_operational_data() -> None:
@@ -156,15 +162,123 @@ def _cost_tariff(profile: dict | None) -> dict | None:
     return scheduled if scheduled and all(scheduled.get(field) is not None for field in rate_fields) else None
 
 
+def _reference_heat_fraction(intraday: pd.DataFrame, cursor: pd.Timestamp) -> float:
+    """Estimate the expected share of daily heat using only earlier completed days."""
+    day_start = cursor.floor("D")
+    elapsed = max(0.0, min(1.0, (cursor - day_start).total_seconds() / 86400))
+    if intraday.empty:
+        return elapsed
+    frame = intraday.copy()
+    frame["time"] = pd.to_datetime(frame.time, utc=True)
+    history = frame[frame.time < day_start].copy()
+    if history.empty:
+        return elapsed
+    cutoff_minutes = cursor.hour * 60 + cursor.minute
+    history["day"] = history.time.dt.floor("D")
+    history["minute"] = history.time.dt.hour * 60 + history.time.dt.minute
+    fractions = []
+    for _, group in history.groupby("day"):
+        total = float(group.heat_mj_m2.sum())
+        if total > 0:
+            fractions.append(
+                float(group.loc[group.minute <= cutoff_minutes, "heat_mj_m2"].sum()) / total
+            )
+    return float(pd.Series(fractions[-7:]).median()) if fractions else elapsed
+
+
+def _performance_accounting(
+    baseline: dict,
+    cursor: datetime,
+    intraday: pd.DataFrame,
+    target: dict = DEMO_ENERGY_TARGET,
+) -> dict:
+    """Build point-in-time EnB, actual and management-target accounting."""
+    timestamp = pd.Timestamp(cursor)
+    day_start = timestamp.floor("D")
+    target_factor = 1 - float(target["improvement_pct"]) / 100
+    cumulative_actual = 0.0
+    cumulative_baseline = 0.0
+    series: list[dict] = []
+    evaluation_start = None
+    try:
+        predictions = get_baseline_artifact().predictions
+    except BaselineArtifactError:
+        predictions = ()
+    for item in predictions:
+        as_of = pd.Timestamp(item["as_of"])
+        result = item["baseline"]
+        if as_of >= day_start:
+            break
+        if result.get("status") != "ready":
+            continue
+        actual = result.get("actual_mj_m2")
+        expected = result.get("expected_mj_m2")
+        if actual is None or expected in {None, 0}:
+            continue
+        evaluation_start = evaluation_start or as_of.isoformat()
+        cumulative_actual += float(actual)
+        cumulative_baseline += float(expected)
+        series.append({
+            "time": as_of.isoformat(),
+            "actual_cumulative_mj_m2": round(cumulative_actual, 3),
+            "baseline_cumulative_mj_m2": round(cumulative_baseline, 3),
+            "target_cumulative_mj_m2": round(cumulative_baseline * target_factor, 3),
+        })
+    intraday_times = pd.to_datetime(intraday.time, utc=True)
+    completed = intraday[intraday_times.dt.floor("D") < day_start].copy()
+    completed["day"] = pd.to_datetime(completed.time, utc=True).dt.floor("D")
+    completed_daily_heat = completed.groupby("day").heat_mj_m2.sum().tail(7)
+    reference_daily_heat = (
+        float(completed_daily_heat.median()) if not completed_daily_heat.empty else None
+    )
+    ready = baseline.get("status") == "ready" and reference_daily_heat not in {None, 0}
+    current = intraday[intraday_times.dt.floor("D") == day_start]
+    current_actual = float(current.heat_mj_m2.sum()) if not current.empty else 0.0
+    fraction = _reference_heat_fraction(intraday, timestamp) if ready else 0.0
+    current_baseline = float(reference_daily_heat) * fraction if ready else None
+    current_target = current_baseline * target_factor if current_baseline is not None else None
+    if current_baseline is not None:
+        evaluation_start = evaluation_start or day_start.isoformat()
+        cumulative_actual += current_actual
+        cumulative_baseline += current_baseline
+        series.append({
+            "time": timestamp.isoformat(),
+            "actual_cumulative_mj_m2": round(cumulative_actual, 3),
+            "baseline_cumulative_mj_m2": round(cumulative_baseline, 3),
+            "target_cumulative_mj_m2": round(cumulative_baseline * target_factor, 3),
+        })
+    cumulative_target = cumulative_baseline * target_factor if cumulative_baseline > 0 else None
+    return {
+        "actual_to_cursor_mj_m2": round(current_actual, 4) if ready else None,
+        "baseline_to_cursor_mj_m2": round(current_baseline, 4) if current_baseline is not None else None,
+        "target_to_cursor_mj_m2": round(current_target, 4) if current_target is not None else None,
+        "reference_day_fraction": round(fraction, 4) if ready else None,
+        "reference_daily_heat_mj_m2": round(float(reference_daily_heat), 4) if ready else None,
+        "intraday_baseline_method": "median of previous seven completed days allocated by their median cumulative heat shape",
+        "cumulative_actual_mj_m2": round(cumulative_actual, 4) if cumulative_baseline > 0 else None,
+        "cumulative_baseline_mj_m2": round(cumulative_baseline, 4) if cumulative_baseline > 0 else None,
+        "cumulative_target_mj_m2": round(cumulative_target, 4) if cumulative_target is not None else None,
+        "performance_series": series,
+        "evaluation_start": evaluation_start,
+        "target": target,
+    }
+
+
 def _business_impact(
     baseline: dict,
     tariff: dict | None,
     growing_area_m2: float,
     current_cost_cad_m2: float | None = None,
+    performance: dict | None = None,
 ) -> dict:
     """Translate analytical evidence into stakeholder-facing, non-causal impact metrics."""
-    actual = baseline.get("actual_mj_m2") if baseline.get("status") == "ready" else None
-    expected = baseline.get("expected_mj_m2") if baseline.get("status") == "ready" else None
+    performance = performance or {}
+    actual = performance.get("actual_to_cursor_mj_m2")
+    expected = performance.get("baseline_to_cursor_mj_m2")
+    if actual is None and baseline.get("status") == "ready":
+        actual = baseline.get("actual_mj_m2")
+    if expected is None and baseline.get("status") == "ready":
+        expected = baseline.get("expected_mj_m2")
     comparable = actual is not None and expected not in {None, 0}
     performance_pct = (
         round((float(expected) - float(actual)) / abs(float(expected)) * 100, 1)
@@ -184,13 +298,38 @@ def _business_impact(
         performance_label = "Within expected range"
 
     heat_variance_cad = None
+    cumulative_heat_variance_cad = None
+    remaining_target_potential_cad = None
+    target_opportunity_cad = None
     if comparable and tariff and tariff.get("heat_per_mj") is not None:
+        heat_rate = float(tariff["heat_per_mj"])
         heat_variance_cad = round(
             (float(expected) - float(actual))
-            * float(tariff["heat_per_mj"])
+            * heat_rate
             * growing_area_m2,
             2,
         )
+        cumulative_actual = performance.get("cumulative_actual_mj_m2")
+        cumulative_expected = performance.get("cumulative_baseline_mj_m2")
+        cumulative_target = performance.get("cumulative_target_mj_m2")
+        if cumulative_actual is not None and cumulative_expected is not None:
+            cumulative_heat_variance_cad = round(
+                (float(cumulative_expected) - float(cumulative_actual))
+                * heat_rate * growing_area_m2,
+                2,
+            )
+        if cumulative_actual is not None and cumulative_target is not None:
+            remaining_target_potential_cad = round(
+                max(float(cumulative_actual) - float(cumulative_target), 0)
+                * heat_rate * growing_area_m2,
+                2,
+            )
+        if cumulative_expected is not None and cumulative_target is not None:
+            target_opportunity_cad = round(
+                max(float(cumulative_expected) - float(cumulative_target), 0)
+                * heat_rate * growing_area_m2,
+                2,
+            )
     current_cost_cad = (
         round(current_cost_cad_m2 * growing_area_m2, 2)
         if current_cost_cad_m2 is not None else None
@@ -200,12 +339,49 @@ def _business_impact(
         else "tariff_required" if tariff is None
         else "ready"
     )
+    cumulative_actual = performance.get("cumulative_actual_mj_m2")
+    cumulative_expected = performance.get("cumulative_baseline_mj_m2")
+    cumulative_target = performance.get("cumulative_target_mj_m2")
+    cumulative_performance_pct = (
+        round((float(cumulative_expected) - float(cumulative_actual)) / abs(float(cumulative_expected)) * 100, 1)
+        if cumulative_actual is not None and cumulative_expected not in {None, 0} else None
+    )
+    remaining_target_potential_mj_m2 = (
+        round(max(float(cumulative_actual) - float(cumulative_target), 0), 3)
+        if cumulative_actual is not None and cumulative_target is not None else None
+    )
+    target_achieved = (
+        bool(float(cumulative_actual) <= float(cumulative_target))
+        if cumulative_actual is not None and cumulative_target is not None else None
+    )
+    target = performance.get("target", DEMO_ENERGY_TARGET)
     return {
         "status": status,
         "energy_performance_pct": performance_pct,
         "performance_state": performance_state,
         "performance_label": performance_label,
         "estimated_heat_cost_variance_cad": heat_variance_cad,
+        "cumulative_energy_performance_pct": cumulative_performance_pct,
+        "cumulative_estimated_heat_cost_variance_cad": cumulative_heat_variance_cad,
+        "remaining_target_potential_mj_m2": remaining_target_potential_mj_m2,
+        "remaining_target_potential_cad": remaining_target_potential_cad,
+        "target_opportunity_cad": target_opportunity_cad,
+        "target_achieved": target_achieved,
+        "target_improvement_pct": target["improvement_pct"],
+        "target_version": target["version"],
+        "target_status": target["status"],
+        "target_source": target["source"],
+        "actual_to_cursor_mj_m2": actual,
+        "baseline_to_cursor_mj_m2": expected,
+        "target_to_cursor_mj_m2": performance.get("target_to_cursor_mj_m2"),
+        "reference_day_fraction": performance.get("reference_day_fraction"),
+        "reference_daily_heat_mj_m2": performance.get("reference_daily_heat_mj_m2"),
+        "intraday_baseline_method": performance.get("intraday_baseline_method"),
+        "cumulative_actual_mj_m2": cumulative_actual,
+        "cumulative_baseline_mj_m2": cumulative_expected,
+        "cumulative_target_mj_m2": cumulative_target,
+        "performance_series": performance.get("performance_series", []),
+        "evaluation_start": performance.get("evaluation_start"),
         "current_cost_to_cursor_cad": current_cost_cad,
         "currency": tariff.get("currency") if tariff else None,
         "area_basis_m2": growing_area_m2,
@@ -213,12 +389,13 @@ def _business_impact(
         "tariff_effective_from": tariff.get("effective_from") if tariff else None,
         "confidence": baseline.get("confidence") if comparable else None,
         "baseline_model": baseline.get("selected_model") if comparable else None,
-        "cost_scope": "Heat, electricity and CO2 from start of operating day to replay cursor",
-        "comparison_scope": "Heat intensity versus weather-normalized baseline",
-        "disclaimer": "Estimated association-based variance.",
+        "cost_scope": "Operating cost: heat, electricity and CO2 from start of day. Performance value: heat since EnB became available.",
+        "comparison_scope": "Point-in-time and cumulative heat intensity versus weather-normalized EnB and provisional management target",
+        "disclaimer": "ISO-aligned EnPI/EnB accounting; the 5% demo target is not prescribed by ISO and values are association-based estimates.",
         "tariff_application": "Configured tariff scenario applied to the historical demo replay",
         "evidence_ids": list(dict.fromkeys([
             *baseline.get("evidence_ids", []),
+            f"target:{target['version']}",
             *([f"tariff:{tariff['id']}"] if tariff and tariff.get("id") else []),
         ])),
     }
@@ -283,25 +460,31 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
         "data_version": snapshot["data_version"],
         "definitions_version": snapshot["definitions_version"],
     })
+    day_start = pd.Timestamp(cursor).floor("D")
+    performance_intraday = intraday_energy_frame(
+        data.operational,
+        data.resources,
+        cursor,
+        grain="5min",
+        tou_windows=(tariff_profile or {}).get("tou_windows"),
+        allocated_cache=data.intraday_cache,
+        calibrations=data.energy_calibrations,
+        start=day_start - pd.Timedelta(days=8),
+        cache_source=data.intraday_backend,
+    )
     current_cost_cad_m2 = None
     if tariff:
-        day_start = pd.Timestamp(cursor).floor("D")
-        current_day = intraday_energy_frame(
-            data.operational,
-            data.resources,
-            cursor,
-            grain="5min",
-            tou_windows=tariff.get("tou_windows"),
-            allocated_cache=data.intraday_cache,
-            calibrations=data.energy_calibrations,
-            start=day_start,
-            cache_source=data.intraday_backend,
-        )
+        current_day = performance_intraday[
+            pd.to_datetime(performance_intraday.time, utc=True).dt.floor("D") == day_start
+        ]
         costed = apply_intraday_cost(current_day, tariff)
         costs = costed["cost_cad_m2"].dropna()
         current_cost_cad_m2 = float(costs.sum()) if not costs.empty else None
+    performance = _performance_accounting(
+        snapshot["baseline"], cursor, performance_intraday
+    )
     snapshot["business_impact"] = _business_impact(
-        snapshot["baseline"], tariff, 62.5, current_cost_cad_m2
+        snapshot["baseline"], tariff, 62.5, current_cost_cad_m2, performance
     )
     snapshot["evidence_ids"] = list(dict.fromkeys([
         *snapshot["evidence_ids"], *snapshot["business_impact"]["evidence_ids"]

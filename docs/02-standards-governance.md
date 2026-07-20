@@ -20,6 +20,8 @@ Every KPI/EnPI/EnB/model/scenario/recommendation has UUID, semantic version, sta
 
 Initial EnPIs are daily heat MJ/m², electricity kWh/m², electricity converted to MJ/m², and total delivered energy MJ/m². Weather-normalized indicators are approved only after relevant-variable and residual reviews. Production normalization is labelled contextual until sample sufficiency is established.
 
+The demo also maintains a distinct energy target line at 5% below the weather-normalized heat EnB (`energy-target-demo-1.0.0`). This is a provisional Varianz management objective used to demonstrate baseline-to-target accounting; ISO 50001 does not prescribe the percentage. A pilot must replace it with an organization-approved, versioned objective recording owner, boundary, period, rationale, relevant variables, approval and effective dates. Actual, EnB and target remain separate series, and monetary values are labelled association-based estimates rather than guaranteed savings.
+
 ## Controls
 
 - Data quality states: `valid`, `suspect`, `invalid`, `imputed`; official results exclude invalid data and disclose suspect/imputed share.
