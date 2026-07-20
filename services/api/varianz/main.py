@@ -146,6 +146,73 @@ def _cost_tariff(profile: dict | None) -> dict | None:
     return scheduled if scheduled and all(scheduled.get(field) is not None for field in rate_fields) else None
 
 
+def _business_impact(
+    baseline: dict,
+    tariff: dict | None,
+    growing_area_m2: float,
+    current_cost_cad_m2: float | None = None,
+) -> dict:
+    """Translate analytical evidence into stakeholder-facing, non-causal impact metrics."""
+    actual = baseline.get("actual_mj_m2") if baseline.get("status") == "ready" else None
+    expected = baseline.get("expected_mj_m2") if baseline.get("status") == "ready" else None
+    comparable = actual is not None and expected not in {None, 0}
+    performance_pct = (
+        round((float(expected) - float(actual)) / abs(float(expected)) * 100, 1)
+        if comparable else None
+    )
+    if performance_pct is None:
+        performance_state = "not_comparable"
+        performance_label = "Baseline not ready"
+    elif performance_pct > 5:
+        performance_state = "favorable"
+        performance_label = "Estimated improvement"
+    elif performance_pct < -5:
+        performance_state = "unfavorable"
+        performance_label = "Estimated excess use"
+    else:
+        performance_state = "within_expected"
+        performance_label = "Within expected range"
+
+    heat_variance_cad = None
+    if comparable and tariff and tariff.get("heat_per_mj") is not None:
+        heat_variance_cad = round(
+            (float(expected) - float(actual))
+            * float(tariff["heat_per_mj"])
+            * growing_area_m2,
+            2,
+        )
+    current_cost_cad = (
+        round(current_cost_cad_m2 * growing_area_m2, 2)
+        if current_cost_cad_m2 is not None else None
+    )
+    status = (
+        "baseline_required" if not comparable
+        else "tariff_required" if tariff is None
+        else "ready"
+    )
+    return {
+        "status": status,
+        "energy_performance_pct": performance_pct,
+        "performance_state": performance_state,
+        "performance_label": performance_label,
+        "estimated_heat_cost_variance_cad": heat_variance_cad,
+        "current_cost_to_cursor_cad": current_cost_cad,
+        "currency": tariff.get("currency") if tariff else None,
+        "area_basis_m2": growing_area_m2,
+        "comparison_as_of": baseline.get("artifact_as_of"),
+        "tariff_effective_from": tariff.get("effective_from") if tariff else None,
+        "confidence": baseline.get("confidence") if comparable else None,
+        "baseline_model": baseline.get("selected_model") if comparable else None,
+        "cost_scope": "Heat, electricity and CO2 from start of operating day to replay cursor",
+        "comparison_scope": "Heat intensity versus weather-normalized baseline",
+        "disclaimer": "Estimated association-based variance; not verified or guaranteed savings.",
+        "evidence_ids": list(dict.fromkeys([
+            *baseline.get("evidence_ids", []),
+            *([f"tariff:{tariff['id']}"] if tariff and tariff.get("id") else []),
+        ])),
+    }
+
+
 def _session(session_id: UUID, principal: Principal) -> ReplaySession:
     session = sessions.get(session_id)
     if session is None:
@@ -205,6 +272,29 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
         "data_version": snapshot["data_version"],
         "definitions_version": snapshot["definitions_version"],
     })
+    current_cost_cad_m2 = None
+    if tariff:
+        day_start = pd.Timestamp(cursor).floor("D")
+        current_day = intraday_energy_frame(
+            data.operational,
+            data.resources,
+            cursor,
+            grain="5min",
+            tou_windows=tariff.get("tou_windows"),
+            allocated_cache=data.intraday_cache,
+            calibrations=data.energy_calibrations,
+            start=day_start,
+            cache_source=data.intraday_backend,
+        )
+        costed = apply_intraday_cost(current_day, tariff)
+        costs = costed["cost_cad_m2"].dropna()
+        current_cost_cad_m2 = float(costs.sum()) if not costs.empty else None
+    snapshot["business_impact"] = _business_impact(
+        snapshot["baseline"], tariff, 62.5, current_cost_cad_m2
+    )
+    snapshot["evidence_ids"] = list(dict.fromkeys([
+        *snapshot["evidence_ids"], *snapshot["business_impact"]["evidence_ids"]
+    ]))
     return {
         "session_id": session.id,
         "revision": session.revision,
@@ -300,6 +390,7 @@ def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
             "kpis",
             "latest",
             "baseline",
+            "business_impact",
             "tariff",
             "metric_definitions",
         ]
@@ -456,6 +547,7 @@ def energy_resources(
             "session_id", "revision", "cursor", "window", "site", "data_version",
             "definitions_version", "model_version", "quality", "replay", "evidence_ids", "kpis",
             "baseline", "resource_series", "anomalies", "tariff", "metric_definitions",
+            "business_impact",
         ]
     }
     base["evidence_ids"] = list(dict.fromkeys([

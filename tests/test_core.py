@@ -31,7 +31,7 @@ from varianz.energy import (
 )
 from varianz.replay import ReplaySession
 from fastapi.testclient import TestClient
-from varianz.main import _agent_evidence, _cost_tariff, _schedule_tariff, app
+from varianz.main import _agent_evidence, _business_impact, _cost_tariff, _schedule_tariff, app
 from varianz.config import settings
 
 ZIP = Path(__file__).parents[1] / "Wageningen MVP Dataset.zip"
@@ -89,6 +89,7 @@ class AgentTests(unittest.TestCase):
             "kpis": {},
             "latest": {},
             "baseline": {},
+            "business_impact": {},
             "tariff": {},
             "metric_definitions": {},
             "anomalies": [{"id": "an_focus", "active": False}],
@@ -395,6 +396,29 @@ class ApiTests(unittest.TestCase):
                     "electricity_offpeak_per_kwh": 0.1, "heat_per_mj": 0.01,
                     "co2_per_kg": 0.1, "water_per_m3": 0.01}
         self.assertIs(_cost_tariff(complete), complete)
+
+    def test_business_impact_is_directional_and_area_scaled(self):
+        baseline = {
+            "status": "ready", "actual_mj_m2": 8, "expected_mj_m2": 10,
+            "confidence": "medium", "selected_model": "rolling_7d_median",
+            "evidence_ids": ["ev_baseline"], "artifact_as_of": "2020-05-20T00:00:00+00:00",
+        }
+        tariff = {"currency": "CAD", "heat_per_mj": 0.1, "id": "tariff-1"}
+        impact = _business_impact(baseline, tariff, 62.5, current_cost_cad_m2=0.5)
+        self.assertEqual(impact["energy_performance_pct"], 20.0)
+        self.assertEqual(impact["performance_state"], "favorable")
+        self.assertEqual(impact["estimated_heat_cost_variance_cad"], 12.5)
+        self.assertEqual(impact["current_cost_to_cursor_cad"], 31.25)
+        self.assertIn("tariff:tariff-1", impact["evidence_ids"])
+
+    def test_business_impact_hides_money_without_tariff(self):
+        impact = _business_impact(
+            {"status": "ready", "actual_mj_m2": 11, "expected_mj_m2": 10},
+            None, 62.5,
+        )
+        self.assertEqual(impact["energy_performance_pct"], -10.0)
+        self.assertEqual(impact["status"], "tariff_required")
+        self.assertIsNone(impact["estimated_heat_cost_variance_cad"])
 
     def test_agent_fails_closed_without_server_key(self):
         client = TestClient(app)
