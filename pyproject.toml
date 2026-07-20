@@ -27,3 +27,8 @@ where = ["services/api"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint.per-file-ignores]
+# These artifact tests intentionally update sys.path before importing the API package.
+"tests/test_baseline_artifact.py" = ["E402"]
+"tests/test_intraday_artifact.py" = ["E402"]
