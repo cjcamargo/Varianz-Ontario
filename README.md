@@ -1,4 +1,4 @@
-# Varianz Operational Intelligence 0.2
+# Varianz by Operion — Operational Intelligence 0.2
 
 Operational Intelligence for Controlled Environment Agriculture. Varianz 0.2 delivers point-in-time
 diagnosis across energy/resources and climate, with natural anomaly detection and an

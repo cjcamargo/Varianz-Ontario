@@ -1,4 +1,4 @@
-# Varianz MVP - Documentation Baseline v0.2
+# Varianz by Operion — MVP Documentation Baseline v0.2
 
 Status: **Review-ready baseline** | Owner: CTO/COO | Product language: English | Updated: 2026-07-11
 

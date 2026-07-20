@@ -2,9 +2,7 @@
 .auth-loading span{width:34px;height:34px;border:2px solid #315044;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
 .login-shell{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(380px,.75fr);background:radial-gradient(circle at 15% 15%,#1b4937 0,transparent 34%),#07100d}
 .login-brand{padding:9vh 8vw;display:flex;flex-direction:column;justify-content:center;max-width:900px}
-.login-logo{display:grid;place-items:center;width:52px;height:52px;border:1px solid #5ca785;border-radius:14px;color:var(--green);font:700 1.25rem Manrope;box-shadow:0 0 35px #3b8a6530}
-.login-brand>span{margin-top:20px;font:700 .78rem Manrope;letter-spacing:.22em;color:#b3c8be}
-.login-brand h1{font:600 clamp(2.4rem,5vw,5rem)/1.02 Manrope;margin:28px 0;max-width:850px;letter-spacing:-.04em}
+.login-brand h1{font:600 clamp(2.4rem,5vw,5rem)/1.02 Manrope;margin:34px 0 28px;max-width:850px;letter-spacing:-.04em}
 .login-brand p{max-width:620px;color:#9cb0a7;font-size:1.05rem;line-height:1.7}
 .login-proof{display:flex;flex-wrap:wrap;gap:9px;margin-top:35px}.login-proof b{font-size:.62rem;letter-spacing:.12em;border:1px solid #315346;border-radius:99px;padding:8px 12px;color:#9ec6b4}
 .login-card{align-self:center;margin:40px 7vw 40px 0;background:linear-gradient(145deg,#11231c,#0a1712);border:1px solid #29463a;border-radius:18px;padding:38px;box-shadow:0 30px 80px #0008}

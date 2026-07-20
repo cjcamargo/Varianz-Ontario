@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import Dashboard from "./dashboard";
 import { authConfigured, supabase } from "./lib/supabase";
+import { BrandLockup } from "./components/Brand";
 
 function LoginScreen({onAuthenticated,restoreError}:{onAuthenticated:(session:Session)=>void;restoreError?:string}){
   const [email,setEmail]=useState("");
@@ -26,16 +27,15 @@ function LoginScreen({onAuthenticated,restoreError}:{onAuthenticated:(session:Se
 
   return <main className="login-shell">
     <section className="login-brand">
-      <div className="login-logo">V</div>
-      <span>VARIANZ</span>
+      <BrandLockup variant="hero"/>
       <h1>Operational intelligence for controlled-environment agriculture.</h1>
       <p>Detect deviations, quantify operational impact and turn evidence into clear operator action.</p>
       <div className="login-proof"><b>ENERGY & RESOURCES</b><b>OPERATIONAL CLIMATE</b><b>VARIANZ AI</b></div>
     </section>
     <section className="login-card">
       <span>PRIVATE DEMO</span>
-      <h2>Sign in to Varianz</h2>
-      <p>Use the demo credentials provided by the Varianz team.</p>
+      <h2>Sign in to Varianz by Operion</h2>
+      <p>Use the private demo credentials provided by Operion.</p>
       {restoreError?<div className="login-error" role="alert">{restoreError}</div>:null}
       {!authConfigured?<div className="login-error">Authentication is not configured for this deployment.</div>:null}
       <form onSubmit={submit}>
