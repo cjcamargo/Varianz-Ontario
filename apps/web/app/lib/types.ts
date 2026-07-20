@@ -24,6 +24,7 @@ export type Snapshot = {
     estimated_heat_cost_variance_cad:number|null; current_cost_to_cursor_cad:number|null;
     cumulative_energy_performance_pct:number|null;
     cumulative_estimated_heat_cost_variance_cad:number|null;
+    cumulative_cost_state:"saving"|"overconsumption"|"balanced"|"unavailable";
     cumulative_avoided_mj_m2:number|null; cumulative_excess_mj_m2:number|null;
     cumulative_avoided_heat_cost_cad:number|null; cumulative_excess_heat_cost_cad:number|null;
     cumulative_net_heat_cost_cad_per_1000m2:number|null;
@@ -39,6 +40,7 @@ export type Snapshot = {
     cumulative_baseline_mj_m2:number|null; cumulative_target_mj_m2:number|null;
     performance_series:Point[]; evaluation_start:string|null;
     completed_evaluation_days:number; current_day_provisional:boolean;
+    calculation_grain_minutes:number; calculation_intervals:number; display_points:number;
     currency:string|null; area_basis_m2:number; comparison_as_of:string|null;
     heat_tariff_cad_per_mj:number|null; tariff_source:string|null; monetary_status:string;
     tariff_effective_from:string|null; confidence:string|null; baseline_model:string|null;

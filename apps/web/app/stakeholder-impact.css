@@ -6,7 +6,7 @@
 .stakeholder-impact h2{max-width:960px;margin:6px 0 4px;font:600 1.08rem/1.45 Manrope}
 .stakeholder-impact p{margin:0;color:var(--muted);font-size:.7rem}
 .stakeholder-impact button{flex:0 0 auto;border:1px solid #3e735d;border-radius:8px;background:#1c4936;color:#dff8ed;padding:9px 12px;cursor:pointer}
-.stakeholder-kpis{grid-template-columns:repeat(4,minmax(190px,1fr))}
+.stakeholder-kpis{grid-template-columns:repeat(3,minmax(210px,1fr))}
 .metric-top em{font-style:normal;font-size:.56rem;letter-spacing:.08em;color:#a9e8c9;background:#193d2e;border-radius:99px;padding:3px 7px}
 .metric-card.amber .metric-top em{color:#ffd48b;background:#49391f}
 .metric-card.neutral .metric-top em{color:#b7c7c0;background:#26332e}

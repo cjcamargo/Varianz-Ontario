@@ -16,6 +16,7 @@ export function OverviewView({data,k,baseline,top,setView,ask}:OverviewProps){
     status:"baseline_required",energy_performance_pct:null,performance_state:"not_comparable",
     performance_label:"Baseline not ready",estimated_heat_cost_variance_cad:null,
     cumulative_energy_performance_pct:null,cumulative_estimated_heat_cost_variance_cad:null,
+    cumulative_cost_state:"unavailable",
     cumulative_avoided_mj_m2:null,cumulative_excess_mj_m2:null,
     cumulative_avoided_heat_cost_cad:null,cumulative_excess_heat_cost_cad:null,
     cumulative_net_heat_cost_cad_per_1000m2:null,cumulative_avoided_heat_cost_cad_per_1000m2:null,
@@ -27,6 +28,7 @@ export function OverviewView({data,k,baseline,top,setView,ask}:OverviewProps){
     reference_day_fraction:null,reference_daily_heat_mj_m2:null,intraday_baseline_method:null,
     cumulative_actual_mj_m2:null,cumulative_baseline_mj_m2:null,cumulative_target_mj_m2:null,
     performance_series:[],evaluation_start:null,completed_evaluation_days:0,current_day_provisional:false,
+    calculation_grain_minutes:5,calculation_intervals:0,display_points:0,
     current_cost_to_cursor_cad:null,currency:null,area_basis_m2:data.site.growing_area_m2,
     heat_tariff_cad_per_mj:null,tariff_source:null,monetary_status:"tariff_required",
     comparison_as_of:null,tariff_effective_from:null,confidence:null,baseline_model:null,
@@ -39,11 +41,13 @@ export function OverviewView({data,k,baseline,top,setView,ask}:OverviewProps){
   const avoidedValue=impact.cumulative_avoided_heat_cost_cad;
   const excessValue=impact.cumulative_excess_heat_cost_cad;
   const netValue=impact.cumulative_estimated_heat_cost_variance_cad;
-  const netFavorable=netValue!=null&&netValue>=0;
-  const netLabel=netFavorable?"Net avoided heat cost":"Net excess heat cost";
+  const netSaving=impact.cumulative_cost_state==="saving";
+  const netExcess=impact.cumulative_cost_state==="overconsumption";
+  const netTone=netSaving?"green":netExcess?"amber":"neutral";
+  const netBadge=netSaving?"NET SAVING":netExcess?"OVERCONSUMPTION":"BALANCED";
   const direction=favorable?"below":unfavorable?"above":"from";
-  const monetaryPhrase=moneyReady&&avoidedValue!=null&&excessValue!=null
-    ?`; accumulated periods contain ${currency(avoidedValue,impact.currency)} avoided and ${currency(excessValue,impact.currency)} excess heat cost`:"";
+  const monetaryPhrase=moneyReady&&netValue!=null
+    ?`; the five-minute cumulative balance is ${currency(Math.abs(netValue),impact.currency)} ${netSaving?"net saving":netExcess?"net overconsumption":"from break-even"}`:"";
   const executiveText=impact.energy_performance_pct==null
     ?"The weather-normalized baseline is not ready for a defensible performance comparison."
     :`${impact.performance_label}: heat to this cursor is ${fmt(Math.abs(impact.energy_performance_pct))}% ${direction} the weather-normalized baseline${monetaryPhrase}.`;
@@ -55,13 +59,14 @@ export function OverviewView({data,k,baseline,top,setView,ask}:OverviewProps){
     </section>
     <section className="hero-grid stakeholder-kpis">
       <Card label="Current heat variance" value={impact.energy_performance_pct==null?null:Math.abs(impact.energy_performance_pct)} unit="% vs EnB" meta={impact.energy_performance_pct==null?"Baseline building — minimum 45 days":`${fmt(impact.actual_to_cursor_mj_m2,3)} actual vs ${fmt(impact.baseline_to_cursor_mj_m2,3)} EnB MJ/m²`} tone={impactTone} badge={favorable?"LOWER USE":unfavorable?"OVERCONSUMPTION":"ON TRACK"}/>
-      <Card label="Gross avoided heat cost" value={avoidedValue} unit={impact.currency||"CAD"} meta={moneyReady?`${fmt(impact.cumulative_avoided_mj_m2,3)} MJ/m² · ${currency(impact.cumulative_avoided_heat_cost_cad_per_1000m2||0,impact.currency)} per 1,000 m²`:"Configure complete Ontario tariffs"} tone="green" digits={3} badge="ABSOLUTE SAVING"/>
-      <Card label="Gross excess heat cost" value={excessValue} unit={impact.currency||"CAD"} meta={moneyReady?`${fmt(impact.cumulative_excess_mj_m2,3)} MJ/m² · ${currency(impact.cumulative_excess_heat_cost_cad_per_1000m2||0,impact.currency)} per 1,000 m²`:"Configure complete Ontario tariffs"} tone={excessValue&&excessValue>0?"amber":"neutral"} digits={3} badge="OVERCONSUMPTION"/>
-      <Card label={netLabel} value={netValue==null?null:Math.abs(netValue)} unit={impact.currency||"CAD"} meta={moneyReady?`Avoided minus excess · ${currency(Math.abs(impact.cumulative_net_heat_cost_cad_per_1000m2||0),impact.currency)} per 1,000 m²`:"Configure complete Ontario tariffs"} tone={netFavorable?"green":"amber"} digits={2} badge="NET"/>
+      <Card label="Cumulative heat cost balance" value={netValue==null?null:Math.abs(netValue)} unit={impact.currency||"CAD"} meta={moneyReady?`${currency(avoidedValue||0,impact.currency)} saving − ${currency(excessValue||0,impact.currency)} excess · ${impact.calculation_intervals.toLocaleString()} five-minute intervals`:"Configure complete Ontario tariffs"} tone={netTone} digits={3} badge={netBadge}/>
       <Card label="Remaining target potential" value={impact.remaining_target_potential_cad} unit={impact.currency||"CAD"} meta={moneyReady?`${fmt(impact.remaining_target_potential_mj_m2)} MJ/m² · configured heat rate ${fmt(impact.heat_tariff_cad_per_mj,4)} CAD/MJ`:"Configure complete Ontario tariffs; energy potential remains available"} tone={impact.target_achieved?"green":"amber"} digits={2} badge={impact.target_achieved?"TARGET MET":"ESTIMATED"}/>
       <Card label="Operating cost today" value={impact.current_cost_to_cursor_cad} unit={impact.currency||"CAD"} meta={moneyReady?"Heat + electricity + CO₂ · start of day to cursor":"Configure electricity, heat and CO₂ tariffs to enable current cost"} tone="neutral" digits={2} badge="TO CURSOR"/>
       <Card label="Climate compliance" value={k.climate_compliance_24h_pct} unit="% / 24h" meta={`${fmt(k.climate_compliance_1h_pct)}% last hour · ${fmt(k.anomaly_minutes,0)} anomaly min`} tone={Number(k.climate_compliance_24h_pct)<90?"amber":"green"}/>
       <Card label="Drain ratio" value={k.drain_ratio_pct} unit="%" meta={`${fmt(k.daily_irrigation_l_m2)} L/m² irrigation · ${fmt(k.daily_drain_l_m2)} L/m² drain`} tone={Number(k.drain_ratio_pct)>80||Number(k.drain_ratio_pct)<10?"amber":"green"}/>
+    </section>
+    <section className="overview-grid"><article className="panel span-2"><div className="panel-head"><div><span>FIVE-MINUTE COST LEDGER</span><h2>Cumulative net heat cost: saving above zero, overconsumption below zero</h2></div></div><LineChart height={280} points={impact.performance_series||[]} series={[{key:"net_cumulative_cad",name:"Cumulative net CAD",color:"#d178ff"},{key:"break_even_cad",name:"Break-even",color:"#8da198",dashed:true}]}/></article>
+      <article className="panel baseline-card"><span>CUMULATIVE INTERPRETATION</span><h2>{netSaving?"Net saving":netExcess?"Net overconsumption":"At break-even"}</h2><p>{currency(avoidedValue||0,impact.currency)} gross saving − {currency(excessValue||0,impact.currency)} gross excess = {currency(Math.abs(netValue||0),impact.currency)} {netSaving?"favorable":netExcess?"unfavorable":"balanced"} balance.</p><p>Calculated over <b>{impact.calculation_intervals.toLocaleString()} intervals of {impact.calculation_grain_minutes} minutes</b>; chart reduced to {impact.display_points.toLocaleString()} display points.</p><p>Heat uses the meter-conserving intraday reconstruction; completed daily totals remain conserved.</p><p>Commercial scale reference: {currency(Math.abs(impact.cumulative_net_heat_cost_cad_per_1000m2||0),impact.currency)} per 1,000 m² for the same period.</p></article>
     </section>
     <section className="overview-grid"><article className="panel span-2"><div className="panel-head"><div><span>ISO-ALIGNED ENERGY PERFORMANCE</span><h2>Cumulative actual vs weather-normalized EnB and management target</h2></div><button onClick={()=>setView("energy")}>Open energy →</button></div><LineChart height={300} points={impact.performance_series||[]} series={[{key:"actual_cumulative_mj_m2",name:"Actual cumulative MJ/m²",color:"#f0b45a"},{key:"baseline_cumulative_mj_m2",name:"Energy baseline (EnB)",color:"#70a4ff",dashed:true},{key:"target_cumulative_mj_m2",name:"Provisional target line",color:"#63e6a5",dashed:true}]}/></article>
       <article className="panel baseline-card"><span>PROVISIONAL MANAGEMENT TARGET</span><h2>{fmt(impact.target_improvement_pct)}% below the weather-normalized EnB</h2><p>{impact.target_achieved?"Current cumulative performance meets the target line.":`${fmt(impact.remaining_target_potential_mj_m2)} MJ/m² remains between actual performance and the target line.`}</p><p>Evaluation coverage: <b>{impact.completed_evaluation_days} completed EnB days + live provisional edge</b>.</p><p>Live edge: previous seven completed days; no future observations.</p><p>Money basis: {fmt(impact.area_basis_m2)} m² × {fmt(impact.heat_tariff_cad_per_mj,4)} CAD/MJ.</p><p>Tariff evidence: <b>{impact.tariff_source||"Not configured"}</b></p><p>Version: <b>{impact.target_version}</b></p><p>ISO 50001/50006 aligned structure; organization approval is required for a pilot target.</p></article>

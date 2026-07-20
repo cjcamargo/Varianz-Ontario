@@ -162,28 +162,24 @@ def _cost_tariff(profile: dict | None) -> dict | None:
     return scheduled if scheduled and all(scheduled.get(field) is not None for field in rate_fields) else None
 
 
-def _reference_heat_fraction(intraday: pd.DataFrame, cursor: pd.Timestamp) -> float:
-    """Estimate the expected share of daily heat using only earlier completed days."""
-    day_start = cursor.floor("D")
-    elapsed = max(0.0, min(1.0, (cursor - day_start).total_seconds() / 86400))
-    if intraday.empty:
-        return elapsed
-    frame = intraday.copy()
-    frame["time"] = pd.to_datetime(frame.time, utc=True)
-    history = frame[frame.time < day_start].copy()
-    if history.empty:
-        return elapsed
-    cutoff_minutes = cursor.hour * 60 + cursor.minute
-    history["day"] = history.time.dt.floor("D")
-    history["minute"] = history.time.dt.hour * 60 + history.time.dt.minute
-    fractions = []
-    for _, group in history.groupby("day"):
-        total = float(group.heat_mj_m2.sum())
-        if total > 0:
-            fractions.append(
-                float(group.loc[group.minute <= cutoff_minutes, "heat_mj_m2"].sum()) / total
-            )
-    return float(pd.Series(fractions[-7:]).median()) if fractions else elapsed
+def _historical_heat_profile(
+    daily_frames: dict[pd.Timestamp, pd.DataFrame], day: pd.Timestamp
+) -> pd.Series:
+    """Return a causal five-minute heat shape from the previous seven complete days."""
+    minutes = pd.Index(range(0, 1440, 5), name="minute")
+    profiles = []
+    for history_day in [item for item in sorted(daily_frames) if item < day][-7:]:
+        history = daily_frames[history_day]
+        total = float(history.heat_mj_m2.sum())
+        if total <= 0:
+            continue
+        interval = history.groupby("minute").heat_mj_m2.sum().reindex(minutes, fill_value=0)
+        profiles.append(interval / total)
+    if not profiles:
+        return pd.Series(1 / len(minutes), index=minutes, dtype=float)
+    profile = pd.concat(profiles, axis=1).median(axis=1).clip(lower=0)
+    total = float(profile.sum())
+    return profile / total if total > 0 else pd.Series(1 / len(minutes), index=minutes)
 
 
 def _performance_accounting(
@@ -192,79 +188,110 @@ def _performance_accounting(
     intraday: pd.DataFrame,
     target: dict = DEMO_ENERGY_TARGET,
 ) -> dict:
-    """Build point-in-time EnB, actual and management-target accounting."""
+    """Accumulate reconstructed actual, EnB and target energy at a five-minute grain."""
     timestamp = pd.Timestamp(cursor)
     day_start = timestamp.floor("D")
     target_factor = 1 - float(target["improvement_pct"]) / 100
+    frame = intraday.copy()
+    if frame.empty:
+        return {
+            "performance_series": [], "evaluation_start": None,
+            "completed_evaluation_days": 0, "current_day_provisional": False,
+            "calculation_grain_minutes": 5, "calculation_intervals": 0,
+            "target": target,
+        }
+    frame["time"] = pd.to_datetime(frame.time, utc=True)
+    frame = frame[frame.time <= timestamp].sort_values("time")
+    frame["time"] = frame.time.dt.floor("5min")
+    frame = frame.groupby("time", as_index=False, sort=True).agg(
+        heat_mj_m2=("heat_mj_m2", "sum")
+    )
+    frame["day"] = frame.time.dt.floor("D")
+    frame["minute"] = frame.time.dt.hour * 60 + frame.time.dt.minute
+    daily_frames = {day: part.copy() for day, part in frame.groupby("day")}
     cumulative_actual = 0.0
     cumulative_baseline = 0.0
     cumulative_avoided = 0.0
     cumulative_excess = 0.0
-    series: list[dict] = []
+    ledger: list[dict] = []
     evaluation_start = None
     completed_evaluation_days = 0
+    current_actual = None
+    current_baseline = None
+    current_target = None
+    reference_daily_heat = None
     try:
         predictions = get_baseline_artifact().predictions
     except BaselineArtifactError:
         predictions = ()
-    for item in predictions:
-        as_of = pd.Timestamp(item["as_of"])
-        result = item["baseline"]
-        if as_of >= day_start:
-            break
-        if result.get("status") != "ready":
-            continue
-        actual = result.get("actual_mj_m2")
-        expected = result.get("expected_mj_m2")
-        if actual is None or expected in {None, 0}:
-            continue
-        evaluation_start = evaluation_start or as_of.isoformat()
-        completed_evaluation_days += 1
-        cumulative_actual += float(actual)
-        cumulative_baseline += float(expected)
-        variance = float(expected) - float(actual)
-        cumulative_avoided += max(variance, 0)
-        cumulative_excess += max(-variance, 0)
-        series.append({
-            "time": as_of.isoformat(),
-            "actual_cumulative_mj_m2": round(cumulative_actual, 3),
-            "baseline_cumulative_mj_m2": round(cumulative_baseline, 3),
-            "target_cumulative_mj_m2": round(cumulative_baseline * target_factor, 3),
-        })
-    intraday_times = pd.to_datetime(intraday.time, utc=True)
-    completed = intraday[intraday_times.dt.floor("D") < day_start].copy()
-    completed["day"] = pd.to_datetime(completed.time, utc=True).dt.floor("D")
-    completed_daily_heat = completed.groupby("day").heat_mj_m2.sum().tail(7)
+    baseline_by_day = {
+        pd.Timestamp(item["as_of"]).floor("D"): item["baseline"]
+        for item in predictions
+        if item["baseline"].get("status") == "ready"
+    }
+    completed_daily_heat = pd.Series({
+        day: float(part.heat_mj_m2.sum())
+        for day, part in daily_frames.items() if day < day_start
+    }).sort_index().tail(7)
     reference_daily_heat = (
         float(completed_daily_heat.median()) if not completed_daily_heat.empty else None
     )
-    ready = baseline.get("status") == "ready" and reference_daily_heat not in {None, 0}
-    current = intraday[intraday_times.dt.floor("D") == day_start]
-    current_actual = float(current.heat_mj_m2.sum()) if not current.empty else 0.0
-    fraction = _reference_heat_fraction(intraday, timestamp) if ready else 0.0
-    current_baseline = float(reference_daily_heat) * fraction if ready else None
-    current_target = current_baseline * target_factor if current_baseline is not None else None
-    if current_baseline is not None:
-        evaluation_start = evaluation_start or day_start.isoformat()
-        cumulative_actual += current_actual
-        cumulative_baseline += current_baseline
-        current_variance = current_baseline - current_actual
-        cumulative_avoided += max(current_variance, 0)
-        cumulative_excess += max(-current_variance, 0)
-        series.append({
-            "time": timestamp.isoformat(),
-            "actual_cumulative_mj_m2": round(cumulative_actual, 3),
-            "baseline_cumulative_mj_m2": round(cumulative_baseline, 3),
-            "target_cumulative_mj_m2": round(cumulative_baseline * target_factor, 3),
-        })
+    evaluation_days = [day for day in sorted(baseline_by_day) if day < day_start]
+    if baseline.get("status") == "ready" and reference_daily_heat not in {None, 0}:
+        evaluation_days.append(day_start)
+    for day in evaluation_days:
+        actual_day = daily_frames.get(day)
+        if actual_day is None or actual_day.empty:
+            continue
+        if day < day_start:
+            expected_daily = baseline_by_day[day].get("expected_mj_m2")
+            if expected_daily in {None, 0}:
+                continue
+            completed_evaluation_days += 1
+        else:
+            expected_daily = reference_daily_heat
+        evaluation_start = evaluation_start or day.isoformat()
+        profile = _historical_heat_profile(daily_frames, day)
+        day_actual = 0.0
+        day_expected = 0.0
+        for row in actual_day.itertuples():
+            actual_interval = float(row.heat_mj_m2)
+            expected_interval = float(expected_daily) * float(profile.loc[row.minute])
+            variance = expected_interval - actual_interval
+            day_actual += actual_interval
+            day_expected += expected_interval
+            cumulative_actual += actual_interval
+            cumulative_baseline += expected_interval
+            cumulative_avoided += max(variance, 0)
+            cumulative_excess += max(-variance, 0)
+            ledger.append({
+                "time": row.time.isoformat(),
+                "actual_cumulative_mj_m2": round(cumulative_actual, 4),
+                "baseline_cumulative_mj_m2": round(cumulative_baseline, 4),
+                "target_cumulative_mj_m2": round(cumulative_baseline * target_factor, 4),
+                "net_cumulative_mj_m2": round(cumulative_baseline - cumulative_actual, 4),
+            })
+        if day == day_start:
+            current_actual = day_actual
+            current_baseline = day_expected
+            current_target = day_expected * target_factor
     cumulative_target = cumulative_baseline * target_factor if cumulative_baseline > 0 else None
+    max_display_points = 1200
+    stride = max(1, (len(ledger) + max_display_points - 1) // max_display_points)
+    series = ledger[::stride]
+    if ledger and (not series or series[-1]["time"] != ledger[-1]["time"]):
+        series.append(ledger[-1])
+    fraction = (
+        current_baseline / float(reference_daily_heat)
+        if current_baseline is not None and reference_daily_heat not in {None, 0} else None
+    )
     return {
-        "actual_to_cursor_mj_m2": round(current_actual, 4) if ready else None,
+        "actual_to_cursor_mj_m2": round(current_actual, 4) if current_actual is not None else None,
         "baseline_to_cursor_mj_m2": round(current_baseline, 4) if current_baseline is not None else None,
         "target_to_cursor_mj_m2": round(current_target, 4) if current_target is not None else None,
-        "reference_day_fraction": round(fraction, 4) if ready else None,
-        "reference_daily_heat_mj_m2": round(float(reference_daily_heat), 4) if ready else None,
-        "intraday_baseline_method": "median of previous seven completed days allocated by their median cumulative heat shape",
+        "reference_day_fraction": round(fraction, 4) if fraction is not None else None,
+        "reference_daily_heat_mj_m2": round(float(reference_daily_heat), 4) if reference_daily_heat is not None else None,
+        "intraday_baseline_method": "daily EnB allocated to five-minute intervals using the median normalized heat shape of the previous seven completed days",
         "cumulative_actual_mj_m2": round(cumulative_actual, 4) if cumulative_baseline > 0 else None,
         "cumulative_baseline_mj_m2": round(cumulative_baseline, 4) if cumulative_baseline > 0 else None,
         "cumulative_target_mj_m2": round(cumulative_target, 4) if cumulative_target is not None else None,
@@ -274,6 +301,9 @@ def _performance_accounting(
         "evaluation_start": evaluation_start,
         "completed_evaluation_days": completed_evaluation_days,
         "current_day_provisional": bool(current_baseline is not None),
+        "calculation_grain_minutes": 5,
+        "calculation_intervals": len(ledger),
+        "display_points": len(series),
         "target": target,
     }
 
@@ -320,24 +350,26 @@ def _business_impact(
     cumulative_excess_heat_cost_cad_per_1000m2 = None
     remaining_target_potential_cad = None
     target_opportunity_cad = None
-    if comparable and tariff and tariff.get("heat_per_mj") is not None:
+    cumulative_actual = performance.get("cumulative_actual_mj_m2")
+    cumulative_expected = performance.get("cumulative_baseline_mj_m2")
+    cumulative_target = performance.get("cumulative_target_mj_m2")
+    cumulative_avoided = performance.get("cumulative_avoided_mj_m2")
+    cumulative_excess = performance.get("cumulative_excess_mj_m2")
+    cumulative_comparable = cumulative_actual is not None and cumulative_expected not in {None, 0}
+    if tariff and tariff.get("heat_per_mj") is not None:
         heat_rate = float(tariff["heat_per_mj"])
-        heat_variance_cad = round(
-            (float(expected) - float(actual))
-            * heat_rate
-            * growing_area_m2,
-            2,
-        )
-        cumulative_actual = performance.get("cumulative_actual_mj_m2")
-        cumulative_expected = performance.get("cumulative_baseline_mj_m2")
-        cumulative_target = performance.get("cumulative_target_mj_m2")
-        cumulative_avoided = performance.get("cumulative_avoided_mj_m2")
-        cumulative_excess = performance.get("cumulative_excess_mj_m2")
-        if cumulative_actual is not None and cumulative_expected is not None:
+        if comparable:
+            heat_variance_cad = round(
+                (float(expected) - float(actual))
+                * heat_rate
+                * growing_area_m2,
+                2,
+            )
+        if cumulative_comparable:
             cumulative_heat_variance_cad = round(
                 (float(cumulative_expected) - float(cumulative_actual))
                 * heat_rate * growing_area_m2,
-                2,
+                4,
             )
             cumulative_net_heat_cost_cad_per_1000m2 = round(
                 (float(cumulative_expected) - float(cumulative_actual)) * heat_rate * 1000,
@@ -374,13 +406,10 @@ def _business_impact(
         if current_cost_cad_m2 is not None else None
     )
     status = (
-        "baseline_required" if not comparable
+        "baseline_required" if not comparable and not cumulative_comparable
         else "tariff_required" if tariff is None
         else "ready"
     )
-    cumulative_actual = performance.get("cumulative_actual_mj_m2")
-    cumulative_expected = performance.get("cumulative_baseline_mj_m2")
-    cumulative_target = performance.get("cumulative_target_mj_m2")
     cumulative_performance_pct = (
         round((float(cumulative_expected) - float(cumulative_actual)) / abs(float(cumulative_expected)) * 100, 1)
         if cumulative_actual is not None and cumulative_expected not in {None, 0} else None
@@ -394,6 +423,20 @@ def _business_impact(
         if cumulative_actual is not None and cumulative_target is not None else None
     )
     target = performance.get("target", DEMO_ENERGY_TARGET)
+    performance_series = [dict(point) for point in performance.get("performance_series", [])]
+    if tariff and tariff.get("heat_per_mj") is not None:
+        heat_rate = float(tariff["heat_per_mj"])
+        for point in performance_series:
+            point["net_cumulative_cad"] = round(
+                float(point["net_cumulative_mj_m2"]) * heat_rate * growing_area_m2,
+                4,
+            )
+            point["break_even_cad"] = 0.0
+    cumulative_cost_state = (
+        "saving" if cumulative_heat_variance_cad is not None and cumulative_heat_variance_cad > 0
+        else "overconsumption" if cumulative_heat_variance_cad is not None and cumulative_heat_variance_cad < 0
+        else "balanced" if cumulative_heat_variance_cad is not None else "unavailable"
+    )
     return {
         "status": status,
         "energy_performance_pct": performance_pct,
@@ -402,6 +445,7 @@ def _business_impact(
         "estimated_heat_cost_variance_cad": heat_variance_cad,
         "cumulative_energy_performance_pct": cumulative_performance_pct,
         "cumulative_estimated_heat_cost_variance_cad": cumulative_heat_variance_cad,
+        "cumulative_cost_state": cumulative_cost_state,
         "cumulative_avoided_mj_m2": performance.get("cumulative_avoided_mj_m2"),
         "cumulative_excess_mj_m2": performance.get("cumulative_excess_mj_m2"),
         "cumulative_avoided_heat_cost_cad": cumulative_avoided_heat_cost_cad,
@@ -426,10 +470,13 @@ def _business_impact(
         "cumulative_actual_mj_m2": cumulative_actual,
         "cumulative_baseline_mj_m2": cumulative_expected,
         "cumulative_target_mj_m2": cumulative_target,
-        "performance_series": performance.get("performance_series", []),
+        "performance_series": performance_series,
         "evaluation_start": performance.get("evaluation_start"),
         "completed_evaluation_days": performance.get("completed_evaluation_days", 0),
         "current_day_provisional": performance.get("current_day_provisional", False),
+        "calculation_grain_minutes": performance.get("calculation_grain_minutes", 5),
+        "calculation_intervals": performance.get("calculation_intervals", 0),
+        "display_points": performance.get("display_points", 0),
         "current_cost_to_cursor_cad": current_cost_cad,
         "currency": tariff.get("currency") if tariff else None,
         "heat_tariff_cad_per_mj": tariff.get("heat_per_mj") if tariff else None,
@@ -520,7 +567,7 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
         tou_windows=(tariff_profile or {}).get("tou_windows"),
         allocated_cache=data.intraday_cache,
         calibrations=data.energy_calibrations,
-        start=day_start - pd.Timedelta(days=8),
+        start=pd.to_datetime(data.operational.observed_at, utc=True).min(),
         cache_source=data.intraday_backend,
     )
     current_cost_cad_m2 = None

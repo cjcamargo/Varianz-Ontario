@@ -496,12 +496,20 @@ class ApiTests(unittest.TestCase):
         self.assertLess(impact_noon["cumulative_estimated_heat_cost_variance_cad"], 0)
         self.assertEqual(impact_six["cumulative_avoided_heat_cost_cad"], 6.25)
         self.assertEqual(impact_six["cumulative_excess_heat_cost_cad"], 0.0)
-        self.assertEqual(impact_noon["cumulative_avoided_heat_cost_cad"], 0.0)
-        self.assertEqual(impact_noon["cumulative_excess_heat_cost_cad"], 37.5)
+        self.assertEqual(impact_noon["cumulative_avoided_heat_cost_cad"], 6.25)
+        self.assertEqual(impact_noon["cumulative_excess_heat_cost_cad"], 43.75)
+        self.assertEqual(
+            impact_noon["cumulative_estimated_heat_cost_variance_cad"],
+            impact_noon["cumulative_avoided_heat_cost_cad"]
+            - impact_noon["cumulative_excess_heat_cost_cad"],
+        )
         self.assertEqual(impact_noon["cumulative_net_heat_cost_cad_per_1000m2"], -600.0)
+        self.assertEqual(impact_noon["calculation_grain_minutes"], 5)
+        self.assertEqual(impact_noon["calculation_intervals"], 3)
+        self.assertEqual(impact_noon["cumulative_cost_state"], "overconsumption")
         self.assertEqual(impact_noon["target_improvement_pct"], 5.0)
         self.assertGreater(impact_noon["remaining_target_potential_cad"], 0)
-        self.assertEqual(len(impact_noon["performance_series"]), 1)
+        self.assertEqual(len(impact_noon["performance_series"]), 3)
 
     def test_agent_fails_closed_without_server_key(self):
         client = TestClient(app)
