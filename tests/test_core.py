@@ -394,7 +394,7 @@ class ApiTests(unittest.TestCase):
         complete = {**schedule_only, "electricity_peak_per_kwh": 0.2,
                     "electricity_midpeak_per_kwh": 0.15,
                     "electricity_offpeak_per_kwh": 0.1, "heat_per_mj": 0.01,
-                    "co2_per_kg": 0.1, "water_per_m3": 0.01}
+                    "co2_per_kg": 0.1, "water_per_m3": None}
         self.assertIs(_cost_tariff(complete), complete)
 
     def test_business_impact_is_directional_and_area_scaled(self):

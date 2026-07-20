@@ -137,11 +137,11 @@ def _schedule_tariff(profile: dict | None) -> dict | None:
 
 
 def _cost_tariff(profile: dict | None) -> dict | None:
-    """Costs additionally require every applicable rate."""
+    """Energy and CO2 costs require only rates used by the intraday calculation."""
     scheduled = _schedule_tariff(profile)
     rate_fields = [
         "electricity_peak_per_kwh", "electricity_midpeak_per_kwh",
-        "electricity_offpeak_per_kwh", "heat_per_mj", "co2_per_kg", "water_per_m3",
+        "electricity_offpeak_per_kwh", "heat_per_mj", "co2_per_kg",
     ]
     return scheduled if scheduled and all(scheduled.get(field) is not None for field in rate_fields) else None
 
@@ -205,7 +205,8 @@ def _business_impact(
         "baseline_model": baseline.get("selected_model") if comparable else None,
         "cost_scope": "Heat, electricity and CO2 from start of operating day to replay cursor",
         "comparison_scope": "Heat intensity versus weather-normalized baseline",
-        "disclaimer": "Estimated association-based variance; not verified or guaranteed savings.",
+        "disclaimer": "Estimated association-based variance.",
+        "tariff_application": "Configured tariff scenario applied to the historical demo replay",
         "evidence_ids": list(dict.fromkeys([
             *baseline.get("evidence_ids", []),
             *([f"tariff:{tariff['id']}"] if tariff and tariff.get("id") else []),
@@ -227,7 +228,7 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
     data = _data()
     cursor = session.effective_cursor()
     try:
-        tariff_profile = get_tariff(settings.database_url, SITE_ID, cursor.date())
+        tariff_profile = get_tariff(settings.database_url, SITE_ID, date.today())
     except psycopg.Error:
         tariff_profile = None
     tariff = _cost_tariff(tariff_profile)
@@ -505,7 +506,7 @@ def energy_resources(
     data = _data()
     cursor = pd.Timestamp(payload["cursor"])
     try:
-        tariff_profile = get_tariff(settings.database_url, SITE_ID, cursor.date())
+        tariff_profile = get_tariff(settings.database_url, SITE_ID, date.today())
     except psycopg.Error:
         tariff_profile = None
     schedule_tariff = _schedule_tariff(tariff_profile)
@@ -634,7 +635,7 @@ def assistant_message(
     data = _data()
     cursor = pd.Timestamp(snapshot["cursor"])
     try:
-        tariff_profile = get_tariff(settings.database_url, SITE_ID, cursor.date())
+        tariff_profile = get_tariff(settings.database_url, SITE_ID, date.today())
     except psycopg.Error:
         tariff_profile = None
     schedule_tariff = _schedule_tariff(tariff_profile)

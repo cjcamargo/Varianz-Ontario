@@ -141,7 +141,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}
       {data&&view==="anomalies"?<AnomaliesView data={data} focus={focus} setFocus={setFocus} ask={ask}/>:null}
       {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} ask={ask}/>:null}
-      {data&&view==="settings"?<SettingsView siteId={data.site.id} apiFetch={apiFetch} onSaved={()=>refresh(data.session_id)}/>:null}
+      {data&&view==="settings"?<SettingsView siteId={data.site.id} apiFetch={apiFetch} onSaved={async()=>{setEnergyData(null);await refresh(data.session_id)}}/>:null}
     </main>
   </div>
 }

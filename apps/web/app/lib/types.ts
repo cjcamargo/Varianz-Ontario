@@ -24,7 +24,7 @@ export type Snapshot = {
     estimated_heat_cost_variance_cad:number|null; current_cost_to_cursor_cad:number|null;
     currency:string|null; area_basis_m2:number; comparison_as_of:string|null;
     tariff_effective_from:string|null; confidence:string|null; baseline_model:string|null;
-    cost_scope:string; comparison_scope:string; disclaimer:string; evidence_ids:string[];
+    cost_scope:string; comparison_scope:string; disclaimer:string; tariff_application:string; evidence_ids:string[];
   };
   metric_definitions: Record<string,{label:string;unit:string;source:string}>;
   intraday?:{

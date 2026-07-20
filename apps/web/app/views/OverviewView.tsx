@@ -17,7 +17,7 @@ export function OverviewView({data,k,baseline,top,setView,ask}:OverviewProps){
     performance_label:"Baseline not ready",estimated_heat_cost_variance_cad:null,
     current_cost_to_cursor_cad:null,currency:null,area_basis_m2:data.site.growing_area_m2,
     comparison_as_of:null,tariff_effective_from:null,confidence:null,baseline_model:null,
-    cost_scope:"",comparison_scope:"",disclaimer:"Estimated association-based variance; not verified or guaranteed savings.",evidence_ids:[],
+    cost_scope:"",comparison_scope:"",disclaimer:"Estimated association-based variance.",tariff_application:"",evidence_ids:[],
   };
   const favorable=impact.energy_performance_pct!=null&&impact.energy_performance_pct>5;
   const unfavorable=impact.energy_performance_pct!=null&&impact.energy_performance_pct<-5;
@@ -34,13 +34,13 @@ export function OverviewView({data,k,baseline,top,setView,ask}:OverviewProps){
 
   return <>
     <section className={`stakeholder-impact ${impactTone}`}>
-      <div><span>STAKEHOLDER IMPACT</span><h2>{executiveText}</h2><p>{impact.disclaimer}</p></div>
+      <div><span>ENERGY IMPACT</span><h2>{executiveText}</h2><p>{impact.disclaimer}</p></div>
       <button onClick={()=>setView("energy")}>Review evidence →</button>
     </section>
     <section className="hero-grid stakeholder-kpis">
-      <Card label="Energy performance" value={impact.energy_performance_pct==null?null:Math.abs(impact.energy_performance_pct)} unit="% vs baseline" meta={impact.energy_performance_pct==null?"Baseline building — minimum 45 days":`${impact.performance_label} · ${impact.confidence} confidence`} tone={impactTone} badge={favorable?"FAVORABLE":unfavorable?"ATTENTION":"ON TRACK"}/>
+      <Card label="Energy impact" value={impact.energy_performance_pct==null?null:Math.abs(impact.energy_performance_pct)} unit="% vs baseline" meta={impact.energy_performance_pct==null?"Baseline building — minimum 45 days":`${impact.performance_label} · ${impact.confidence} confidence`} tone={impactTone} badge={favorable?"FAVORABLE":unfavorable?"ATTENTION":"ON TRACK"}/>
       <Card label={varianceLabel} value={impact.estimated_heat_cost_variance_cad==null?null:Math.abs(impact.estimated_heat_cost_variance_cad)} unit={impact.currency||"CAD"} meta={moneyReady?`Weather-normalized heat variance · ${fmt(impact.area_basis_m2)} m² growing area`:"Configure complete Ontario tariffs to enable monetary impact"} tone={impact.estimated_heat_cost_variance_cad!=null&&impact.estimated_heat_cost_variance_cad<0?"amber":"green"} digits={2} badge="ESTIMATED"/>
-      <Card label="Operating cost to cursor" value={impact.current_cost_to_cursor_cad} unit={impact.currency||"CAD"} meta={moneyReady?`Heat + electricity + CO₂ · ${fmt(impact.area_basis_m2)} m² growing area`:"Configure complete Ontario tariffs to enable current cost"} tone="neutral" digits={2} badge="TO CURSOR"/>
+      <Card label="Operating cost to cursor" value={impact.current_cost_to_cursor_cad} unit={impact.currency||"CAD"} meta={moneyReady?"Heat + electricity + CO₂ · configured tariff scenario":"Configure electricity, heat and CO₂ tariffs to enable current cost"} tone="neutral" digits={2} badge="TO CURSOR"/>
       <Card label="Total energy" value={k.daily_total_energy_mj_m2} unit="MJ/m²·day" meta={`${fmt(k.daily_heat_mj_m2)} heat · ${fmt(k.daily_electricity_kwh_m2)} kWh electricity`}/>
       <Card label="Climate compliance" value={k.climate_compliance_24h_pct} unit="% / 24h" meta={`${fmt(k.climate_compliance_1h_pct)}% last hour · ${fmt(k.anomaly_minutes,0)} anomaly min`} tone={Number(k.climate_compliance_24h_pct)<90?"amber":"green"}/>
       <Card label="Drain ratio" value={k.drain_ratio_pct} unit="%" meta={`${fmt(k.daily_irrigation_l_m2)} L/m² irrigation · ${fmt(k.daily_drain_l_m2)} L/m² drain`} tone={Number(k.drain_ratio_pct)>80||Number(k.drain_ratio_pct)<10?"amber":"green"}/>
