@@ -11,16 +11,18 @@ export type Anomaly = {
 
 export type Snapshot = {
   session_id: string; revision: number; cursor: string; playing: boolean; speed: number;
+  replay:{minimum:string;maximum:string;observations_seen:number;observations_total:number;progress_pct:number};
   window: WindowKey; site: {id:string; name:string; area_m2:number; growing_area_m2:number};
-  quality: {state:string; backend:string; future_safe:boolean};
+  quality: {state:string;backend:string;future_safe:boolean;data_status:string;validation_scope:string;as_of:string;coverage_start:string;coverage_end:string;data_version:string;definitions_version:string};
   data_version:string; definitions_version:string; model_version:string; evidence_ids:string[];
   kpis: Record<string, number | null>; latest: Record<string, number | null>;
   baseline: Record<string, any>; anomalies: Anomaly[]; climate_series: Point[];
-  resource_series: Point[]; tariff:{configured:boolean;currency:string|null};
+  resource_series: Point[]; tariff:{configured:boolean;currency:string|null;cost_scope?:string};
   metric_definitions: Record<string,{label:string;unit:string;source:string}>;
   intraday?:{
     grain:"5min"|"1h"; series:Point[];
-    reconstruction:{method:string;calibration_days:number;model_version:string;fit_r2:Record<string,number|null>;evidence_ids:string[]};
+    reconstruction:{method:string;calibration_days:number;model_version:string;fit_r2:Record<string,number|null>;evidence_ids:string[];serving_source?:string};
+    summary:Record<string,any>;serving_source?:string;
     cost_configured:boolean;tou_configured:boolean;currency:string|null;
   };
   efficiency?:Record<string,any>;

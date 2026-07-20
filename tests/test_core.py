@@ -5,7 +5,7 @@ import json
 import sys
 import time
 import unittest
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 from uuid import UUID, uuid4
@@ -24,7 +24,9 @@ from varianz.energy import (
     efficiency_events,
     efficiency_indicators,
     intraday_energy_frame,
+    ontario_tou_holidays,
     reconstruction_metadata,
+    tou_period_masks,
     tou_peak_mask,
 )
 from varianz.replay import ReplaySession
@@ -215,6 +217,37 @@ class IntradayEnergyTests(unittest.TestCase):
         self.assertEqual(tou_peak_mask(times, windows, "UTC").tolist(), [True, False, False])
         self.assertTrue(apply_intraday_cost(self.five_min.head(2), None).cost_cad_m2.isna().all())
 
+    def test_ontario_tou_is_seasonal_and_holidays_are_offpeak(self):
+        windows = [
+            {"label":"midpeak","days":"mon-fri","season":"summer","start":"07:00","end":"11:00"},
+            {"label":"peak","days":"mon-fri","season":"summer","start":"11:00","end":"17:00"},
+            {"label":"midpeak","days":"mon-fri","season":"summer","start":"17:00","end":"19:00"},
+            {"label":"peak","days":"mon-fri","season":"winter","start":"07:00","end":"11:00"},
+            {"label":"midpeak","days":"mon-fri","season":"winter","start":"11:00","end":"17:00"},
+            {"label":"peak","days":"mon-fri","season":"winter","start":"17:00","end":"19:00"},
+        ]
+        summer = pd.Series(pd.to_datetime([
+            "2020-07-06T06:59:00-04:00", "2020-07-06T07:00:00-04:00",
+            "2020-07-06T11:00:00-04:00", "2020-07-06T17:00:00-04:00",
+            "2020-07-06T19:00:00-04:00",
+        ], utc=True))
+        masks = tou_period_masks(summer, windows)
+        self.assertEqual(masks["peak"].tolist(), [False, False, True, False, False])
+        self.assertEqual(masks["midpeak"].tolist(), [False, True, False, True, False])
+        self.assertEqual(masks["offpeak"].tolist(), [True, False, False, False, True])
+        winter = pd.Series(pd.to_datetime([
+            "2020-01-06T07:00:00-05:00", "2020-01-06T11:00:00-05:00",
+            "2020-01-06T17:00:00-05:00", "2020-01-06T19:00:00-05:00",
+        ], utc=True))
+        winter_masks = tou_period_masks(winter, windows)
+        self.assertEqual(winter_masks["peak"].tolist(), [True, False, True, False])
+        self.assertEqual(winter_masks["midpeak"].tolist(), [False, True, False, False])
+        weekend_and_holiday = pd.Series(pd.to_datetime([
+            "2020-07-04T12:00:00-04:00", "2020-07-01T12:00:00-04:00",
+        ], utc=True))
+        self.assertEqual(tou_period_masks(weekend_and_holiday, windows)["offpeak"].tolist(), [True, True])
+        self.assertIn(date(2020, 7, 1), ontario_tou_holidays(2020))
+
     def test_enpis_and_events_are_evidenced_and_non_prescriptive(self):
         indicators = efficiency_indicators(
             self.five_min, self.operational, self.resources, self.cursor,
@@ -294,6 +327,9 @@ class ApiTests(unittest.TestCase):
         body = dashboard.json()
         self.assertEqual(body["revision"], 0)
         self.assertIn("kpis", body)
+        self.assertGreater(body["replay"]["progress_pct"], 0)
+        self.assertEqual(body["quality"]["data_status"], "warning")
+        self.assertIn("timestamps", body["quality"]["validation_scope"])
 
     @patch("varianz.main._data_is_ready", return_value=False)
     def test_readiness_reports_background_warmup(self, _ready):
@@ -321,11 +357,16 @@ class ApiTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         payload = response.json()
+        self.assertGreater(payload["replay"]["progress_pct"], 0)
+        self.assertGreaterEqual(
+            payload["replay"]["observations_total"],
+            payload["replay"]["observations_seen"],
+        )
         self.assertEqual(payload["intraday"]["grain"], "1h")
         self.assertEqual(payload["intraday"]["serving_source"], "versioned_artifact")
         self.assertEqual(
             payload["intraday"]["reconstruction"]["model_version"],
-            "energy-intraday-1.1.0",
+            "energy-intraday-1.2.0",
         )
         self.assertTrue(
             any(point["quality"] == "provisional" for point in payload["intraday"]["series"])
@@ -334,17 +375,23 @@ class ApiTests(unittest.TestCase):
             all(point["time"] <= payload["cursor"] for point in payload["intraday"]["series"])
         )
         self.assertIn("efficiency", payload)
+        self.assertIn("current_rate", payload["intraday"]["summary"]["co2"])
+        self.assertIn(payload["intraday"]["summary"]["co2"]["status"], {
+            "estimated", "estimated_zero", "reconciled", "measured_zero",
+        })
 
     def test_tou_schedule_enables_peak_share_without_enabling_cost(self):
         schedule_only = {
             "tou_windows": [{"label":"peak","days":"mon-fri","start":"07:00","end":"11:00"}],
             "electricity_peak_per_kwh": None,
+            "electricity_midpeak_per_kwh": None,
             "electricity_offpeak_per_kwh": None,
             "heat_per_mj": None, "co2_per_kg": None, "water_per_m3": None,
         }
         self.assertIs(_schedule_tariff(schedule_only), schedule_only)
         self.assertIsNone(_cost_tariff(schedule_only))
         complete = {**schedule_only, "electricity_peak_per_kwh": 0.2,
+                    "electricity_midpeak_per_kwh": 0.15,
                     "electricity_offpeak_per_kwh": 0.1, "heat_per_mj": 0.01,
                     "co2_per_kg": 0.1, "water_per_m3": 0.01}
         self.assertIs(_cost_tariff(complete), complete)

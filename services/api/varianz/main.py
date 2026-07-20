@@ -100,16 +100,18 @@ class AgentQuestion(BaseModel):
 
 
 class TouWindow(BaseModel):
-    label: str = Field(pattern="^(peak|offpeak)$")
+    label: str = Field(pattern="^(peak|midpeak|offpeak)$")
     days: str = Field(pattern="^(all|mon-fri|sat-sun|weekend)$")
     start: str = Field(pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
     end: str = Field(pattern="^([01]\\d|2[0-3]):[0-5]\\d$")
+    season: str = Field(default="all", pattern="^(all|summer|winter)$")
 
 
 class TariffProfile(BaseModel):
     currency: str = Field(default="CAD", pattern="^[A-Z]{3}$")
     effective_from: date
     electricity_peak_per_kwh: float | None = Field(default=None, ge=0)
+    electricity_midpeak_per_kwh: float | None = Field(default=None, ge=0)
     electricity_offpeak_per_kwh: float | None = Field(default=None, ge=0)
     heat_per_mj: float | None = Field(default=None, ge=0)
     co2_per_kg: float | None = Field(default=None, ge=0)
@@ -138,8 +140,8 @@ def _cost_tariff(profile: dict | None) -> dict | None:
     """Costs additionally require every applicable rate."""
     scheduled = _schedule_tariff(profile)
     rate_fields = [
-        "electricity_peak_per_kwh", "electricity_offpeak_per_kwh", "heat_per_mj",
-        "co2_per_kg", "water_per_m3",
+        "electricity_peak_per_kwh", "electricity_midpeak_per_kwh",
+        "electricity_offpeak_per_kwh", "heat_per_mj", "co2_per_kg", "water_per_m3",
     ]
     return scheduled if scheduled and all(scheduled.get(field) is not None for field in rate_fields) else None
 
@@ -186,20 +188,92 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
         *snapshot["evidence_ids"],
         *(evidence for item in operational_events for evidence in item["evidence_ids"]),
     ]))
+    observed_times = pd.to_datetime(data.operational.observed_at, utc=True)
+    observations_seen = int(observed_times.searchsorted(pd.Timestamp(cursor), side="right"))
+    observations_total = len(observed_times)
+    data_status = (
+        "good" if data.quality == "validated" and data.backend == "supabase"
+        else "warning" if data.quality in {"validated", "zip_fallback"}
+        else "bad"
+    )
+    snapshot["quality"].update({
+        "data_status": data_status,
+        "validation_scope": "timestamps, units, duplicates, finite ranges and source reconciliation",
+        "as_of": pd.Timestamp(cursor).isoformat(),
+        "coverage_start": observed_times.min().isoformat(),
+        "coverage_end": observed_times.max().isoformat(),
+        "data_version": snapshot["data_version"],
+        "definitions_version": snapshot["definitions_version"],
+    })
     return {
         "session_id": session.id,
         "revision": session.revision,
         "playing": session.playing,
         "speed": session.speed,
+        "replay": {
+            "minimum": session.minimum.isoformat(),
+            "maximum": session.maximum.isoformat(),
+            "observations_seen": observations_seen,
+            "observations_total": observations_total,
+            "progress_pct": round(observations_seen / max(observations_total, 1) * 100, 1),
+        },
         "site": {
             "id": SITE_ID,
-            "name": "Wageningen Reference Greenhouse",
+            "name": "Wageningen Demo Reference Greenhouse",
             "area_m2": 96,
             "growing_area_m2": 62.5,
             "timezone": "Europe/Amsterdam",
         },
         **snapshot,
     }
+
+
+def _intraday_summary(frame: pd.DataFrame, cursor: pd.Timestamp) -> dict:
+    times = pd.to_datetime(frame.time, utc=True)
+    current = frame[times.dt.floor("D") == cursor.floor("D")]
+    columns = {
+        "heat": ("heat_mj_m2", "MJ/m2/h", "MJ/m2"),
+        "electricity": ("elec_kwh_m2", "kW/m2", "kWh/m2"),
+        "co2": ("co2_kg_m2", "kg/m2/h", "kg/m2"),
+    }
+    signals = {}
+    for name, (column, rate_unit, accumulated_unit) in columns.items():
+        values = current[column].dropna() if column in current else pd.Series(dtype=float)
+        if values.empty:
+            signals[name] = {
+                "status": "unavailable", "current_rate": None, "accumulated": None,
+                "rate_unit": rate_unit, "accumulated_unit": accumulated_unit,
+                "quality": "missing", "is_exact_zero": False, "is_small_nonzero": False,
+            }
+            continue
+        latest = float(values.iloc[-1])
+        accumulated = float(values.sum())
+        quality = str(current.loc[values.index[-1], "quality"])
+        is_zero = latest == 0
+        rate = latest * 12  # five-minute energy allocated as an hourly equivalent rate
+        signals[name] = {
+            "status": (
+                "estimated_zero" if is_zero and quality == "provisional"
+                else "measured_zero" if is_zero
+                else "estimated" if quality == "provisional"
+                else "reconciled"
+            ),
+            "current_rate": round(rate, 8),
+            "accumulated": round(accumulated, 8),
+            "rate_unit": rate_unit,
+            "accumulated_unit": accumulated_unit,
+            "quality": quality,
+            "is_exact_zero": is_zero,
+            "is_small_nonzero": not is_zero and abs(rate) < 0.01,
+        }
+    electricity = float(current.elec_kwh_m2.sum()) if not current.empty else 0
+    signals["tou_shares"] = {
+        "peak_pct": None if electricity <= 0 else round(float(current.elec_peak_kwh_m2.sum()) / electricity * 100, 1),
+        "midpeak_pct": None if electricity <= 0 else round(float(current.elec_midpeak_kwh_m2.sum()) / electricity * 100, 1),
+        "offpeak_pct": None if electricity <= 0 else round(float(current.elec_offpeak_kwh_m2.sum()) / electricity * 100, 1),
+    }
+    signals["interval_minutes"] = 5
+    return signals
 
 
 def _agent_evidence(snapshot: dict, anomaly_id: str | None = None) -> dict:
@@ -380,7 +454,7 @@ def energy_resources(
         key: payload[key]
         for key in [
             "session_id", "revision", "cursor", "window", "site", "data_version",
-            "definitions_version", "model_version", "quality", "evidence_ids", "kpis",
+            "definitions_version", "model_version", "quality", "replay", "evidence_ids", "kpis",
             "baseline", "resource_series", "anomalies", "tariff", "metric_definitions",
         ]
     }
@@ -391,6 +465,7 @@ def energy_resources(
     base["intraday"] = {
         "grain": grain,
         "series": records,
+        "summary": _intraday_summary(five_min_intraday, cursor),
         "reconstruction": reconstruction,
         "serving_source": five_min_intraday.attrs.get("serving_source"),
         "cost_configured": bool(cost_tariff),
@@ -412,7 +487,7 @@ def climate(
         key: payload[key]
         for key in [
             "session_id", "revision", "cursor", "window", "site", "data_version",
-            "definitions_version", "model_version", "quality", "evidence_ids", "kpis",
+            "definitions_version", "model_version", "quality", "replay", "evidence_ids", "kpis",
             "latest", "climate_series", "anomalies", "metric_definitions",
         ]
     }
@@ -429,7 +504,7 @@ def anomalies(
         key: payload[key]
         for key in [
             "session_id", "revision", "cursor", "data_version", "definitions_version",
-            "model_version", "quality", "evidence_ids", "anomalies",
+            "model_version", "quality", "replay", "evidence_ids", "anomalies",
         ]
     }
 

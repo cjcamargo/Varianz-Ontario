@@ -423,7 +423,7 @@ def operational_snapshot(
     peak_share = resource.ElecHigh / electricity * 100 if resource is not None and electricity else np.nan
     drain_ratio = resource.Drain / resource.Irr * 100 if resource is not None and resource.Irr else np.nan
     cost = None
-    if resource is not None and tariff:
+    if resource is not None and tariff and tariff.get("electricity_midpeak_per_kwh") is None:
         cost = (
             resource.ElecHigh * tariff["electricity_peak_per_kwh"]
             + resource.ElecLow * tariff["electricity_offpeak_per_kwh"]
@@ -476,7 +476,11 @@ def operational_snapshot(
         "resource_series": _series(
             visible_resources, ["Heat_cons", "ElecHigh", "ElecLow", "CO2_cons", "Irr", "Drain"]
         ),
-        "tariff": {"configured": bool(tariff), "currency": tariff.get("currency") if tariff else None},
+        "tariff": {
+            "configured": bool(tariff),
+            "currency": tariff.get("currency") if tariff else None,
+            "cost_scope": "intraday" if tariff and tariff.get("electricity_midpeak_per_kwh") is not None else "daily",
+        },
         "metric_definitions": {
             code: {
                 "label": definition.label,

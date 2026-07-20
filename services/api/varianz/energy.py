@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime
+from datetime import date, datetime, timedelta
+from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -9,9 +10,7 @@ import pandas as pd
 from .intraday_artifact import IntradayArtifactError, get_intraday_artifact
 from .metrics import ENERGY_MODEL_VERSION
 
-DEFAULT_TOU_WINDOWS = [
-    {"label": "peak", "days": "all", "start": "07:00", "end": "23:00"}
-]
+DEFAULT_TOU_WINDOWS: list[dict] = []
 QUALITY_ORDER = {"allocated": 0, "measured": 0, "provisional": 1, "imputed": 2}
 
 
@@ -48,23 +47,89 @@ def _day_matches(day_index: pd.DatetimeIndex, rule: str) -> np.ndarray:
     return np.ones(len(day_index), dtype=bool)
 
 
-def tou_peak_mask(
+def _nth_weekday(year: int, month: int, weekday: int, occurrence: int) -> date:
+    first = date(year, month, 1)
+    offset = (weekday - first.weekday()) % 7
+    return first + timedelta(days=offset + 7 * (occurrence - 1))
+
+
+def _easter_sunday(year: int) -> date:
+    a, b, c = year % 19, year // 100, year % 100
+    d, e = b // 4, b % 4
+    f, g = (b + 8) // 25, (b - (b + 8) // 25 + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    month = (h + l - 7 * m + 114) // 31
+    day = (h + l - 7 * m + 114) % 31 + 1
+    return date(year, month, day)
+
+
+@lru_cache(maxsize=32)
+def ontario_tou_holidays(year: int) -> frozenset[date]:
+    holidays = {
+        date(year, 1, 1),
+        _nth_weekday(year, 2, 0, 3),  # Family Day
+        _easter_sunday(year) - timedelta(days=2),
+        date(year, 5, 25) - timedelta(
+            days=((date(year, 5, 25).weekday() - 0) % 7 or 7)
+        ),
+        date(year, 7, 1),
+        _nth_weekday(year, 8, 0, 1),
+        _nth_weekday(year, 9, 0, 1),
+        _nth_weekday(year, 10, 0, 2),
+        date(year, 12, 25),
+        date(year, 12, 26),
+    }
+    observed = set(holidays)
+    occupied = set(holidays)
+    for holiday in sorted(holidays):
+        if holiday.weekday() < 5:
+            continue
+        candidate = holiday + timedelta(days=1)
+        while candidate.weekday() >= 5 or candidate in occupied:
+            candidate += timedelta(days=1)
+        observed.add(candidate)
+        occupied.add(candidate)
+    return frozenset(observed)
+
+
+def tou_period_masks(
     times: pd.Series,
     windows: list[dict] | None = None,
-    timezone: str = "Europe/Amsterdam",
-) -> np.ndarray:
+    timezone: str = "America/Toronto",
+) -> dict[str, np.ndarray]:
     local = pd.DatetimeIndex(pd.to_datetime(times, utc=True)).tz_convert(timezone)
     minutes = local.hour * 60 + local.minute
-    peak = np.zeros(len(local), dtype=bool)
+    periods = np.full(len(local), "offpeak", dtype=object)
+    holidays = np.asarray([
+        timestamp.date() in ontario_tou_holidays(timestamp.year) for timestamp in local
+    ])
+    summer = np.asarray((local.month >= 5) & (local.month <= 10))
     for window in windows or DEFAULT_TOU_WINDOWS:
-        if str(window.get("label", "")).lower() != "peak":
+        label = str(window.get("label", "")).lower()
+        if label not in {"peak", "midpeak", "offpeak"}:
             continue
         start_h, start_m = map(int, str(window["start"]).split(":"))
         end_h, end_m = map(int, str(window["end"]).split(":"))
         start, end = start_h * 60 + start_m, end_h * 60 + end_m
         clock = (minutes >= start) & (minutes < end) if start < end else (minutes >= start) | (minutes < end)
-        peak |= clock & _day_matches(local, str(window.get("days", "all")))
-    return peak
+        season = str(window.get("season", "all")).lower()
+        season_match = summer if season == "summer" else ~summer if season == "winter" else True
+        match = clock & _day_matches(local, str(window.get("days", "all"))) & season_match
+        if label != "offpeak":
+            match &= ~holidays
+        periods[match] = label
+    return {label: np.asarray(periods == label) for label in ("peak", "midpeak", "offpeak")}
+
+
+def tou_peak_mask(
+    times: pd.Series,
+    windows: list[dict] | None = None,
+    timezone: str = "America/Toronto",
+) -> np.ndarray:
+    return tou_period_masks(times, windows, timezone)["peak"]
 
 
 def _rolling_factor(
@@ -87,7 +152,8 @@ def aggregate_intraday(intraday: pd.DataFrame, grain: str) -> pd.DataFrame:
         raise ValueError("invalid_energy_grain")
     sums = [
         "heat_mj_m2", "elec_kwh_m2", "co2_kg_m2",
-        "elec_peak_kwh_m2", "elec_offpeak_kwh_m2", "cost_cad_m2",
+        "elec_peak_kwh_m2", "elec_midpeak_kwh_m2", "elec_offpeak_kwh_m2",
+        "cost_cad_m2",
     ]
     hourly = intraday.set_index("time").resample("1h").agg(
         {**{column: "sum" for column in sums}, "quality": lambda values: max(values, key=lambda x: QUALITY_ORDER[x])}
@@ -114,7 +180,8 @@ def compute_intraday_energy_frame(
     if visible.empty:
         return pd.DataFrame(columns=[
             "time", "heat_mj_m2", "elec_kwh_m2", "co2_kg_m2",
-            "elec_peak_kwh_m2", "elec_offpeak_kwh_m2", "cost_cad_m2", "quality",
+            "elec_peak_kwh_m2", "elec_midpeak_kwh_m2", "elec_offpeak_kwh_m2",
+            "cost_cad_m2", "quality",
         ])
     frame = _proxy_frame(visible).sort_values("observed_at").reset_index(drop=True)
     frame["day"] = _day_key(frame.observed_at)
@@ -152,13 +219,15 @@ def compute_intraday_energy_frame(
                 frame.loc[indexes, output] = factor * proxy
                 frame.loc[indexes, "quality"] = "provisional"
 
-    peak = tou_peak_mask(frame.observed_at, tou_windows)
-    frame["elec_peak_kwh_m2"] = frame.elec_kwh_m2.where(peak, 0.0)
-    frame["elec_offpeak_kwh_m2"] = frame.elec_kwh_m2.where(~peak, 0.0)
+    periods = tou_period_masks(frame.observed_at, tou_windows)
+    frame["elec_peak_kwh_m2"] = frame.elec_kwh_m2.where(periods["peak"], 0.0)
+    frame["elec_midpeak_kwh_m2"] = frame.elec_kwh_m2.where(periods["midpeak"], 0.0)
+    frame["elec_offpeak_kwh_m2"] = frame.elec_kwh_m2.where(periods["offpeak"], 0.0)
     frame["cost_cad_m2"] = np.nan
     result = frame.rename(columns={"observed_at": "time"})[[
         "time", "heat_mj_m2", "elec_kwh_m2", "co2_kg_m2",
-        "elec_peak_kwh_m2", "elec_offpeak_kwh_m2", "cost_cad_m2", "quality",
+        "elec_peak_kwh_m2", "elec_midpeak_kwh_m2", "elec_offpeak_kwh_m2",
+        "cost_cad_m2", "quality",
     ]]
     return aggregate_intraday(result, grain)
 
@@ -282,9 +351,10 @@ def intraday_energy_frame(
                 "quality": "provisional",
             }))
     result = pd.concat([history, *provisional_parts], ignore_index=True).sort_values("time")
-    peak = tou_peak_mask(result.time, tou_windows)
-    result["elec_peak_kwh_m2"] = result.elec_kwh_m2.where(peak, 0.0)
-    result["elec_offpeak_kwh_m2"] = result.elec_kwh_m2.where(~peak, 0.0)
+    periods = tou_period_masks(result.time, tou_windows)
+    result["elec_peak_kwh_m2"] = result.elec_kwh_m2.where(periods["peak"], 0.0)
+    result["elec_midpeak_kwh_m2"] = result.elec_kwh_m2.where(periods["midpeak"], 0.0)
+    result["elec_offpeak_kwh_m2"] = result.elec_kwh_m2.where(periods["offpeak"], 0.0)
     result["cost_cad_m2"] = np.nan
     result = aggregate_intraday(result, grain)
     result.attrs["serving_source"] = cache_source or (
@@ -301,6 +371,7 @@ def apply_intraday_cost(intraday: pd.DataFrame, tariff: dict | None) -> pd.DataF
         return result
     result["cost_cad_m2"] = (
         result.elec_peak_kwh_m2 * tariff["electricity_peak_per_kwh"]
+        + result.elec_midpeak_kwh_m2 * tariff["electricity_midpeak_per_kwh"]
         + result.elec_offpeak_kwh_m2 * tariff["electricity_offpeak_per_kwh"]
         + result.heat_mj_m2 * tariff["heat_per_mj"]
         + result.co2_kg_m2 * tariff["co2_per_kg"]
@@ -374,14 +445,37 @@ def _indicator(
     expected: float | None = None,
     confidence: str = "medium",
     unavailable_reason: str | None = None,
+    direction: str = "lower_is_better",
+    tolerance_pct: float = 5,
 ) -> dict:
     variance = None if value is None or expected in {None, 0} else round((value - expected) / expected * 100, 1)
+    if variance is None:
+        performance_status = "not_comparable"
+        interpretation = "No validated expectation is available for this replay cursor."
+    elif abs(variance) <= tolerance_pct:
+        performance_status = "within_expected"
+        interpretation = "Within the expected operating range."
+    elif (variance < 0 and direction == "lower_is_better") or (
+        variance > 0 and direction == "higher_is_better"
+    ):
+        performance_status = "favorable"
+        interpretation = "Favorable versus expected; confirm climate and production guardrails."
+    else:
+        performance_status = "unfavorable"
+        interpretation = "Unfavorable versus expected; review the contributing operating signals."
+    numeric = None if value is None else float(value)
     return {
         "status": "ready" if value is not None else "insufficient_data",
-        "value": None if value is None else round(float(value), 4),
+        "value": None if numeric is None else round(numeric, 6),
         "unit": unit,
-        "expected": None if expected is None else round(float(expected), 4),
+        "expected": None if expected is None else round(float(expected), 6),
         "variance_pct": variance,
+        "direction": direction,
+        "performance_status": performance_status,
+        "interpretation": interpretation,
+        "display_precision": 4 if numeric is not None and abs(numeric) < 0.1 else 2,
+        "comparison_basis": "Current day to replay cursor vs median of previous seven completed days",
+        "stability": "provisional_intraday",
         "confidence": confidence,
         "unavailable_reason": unavailable_reason if value is None else None,
         "relevant_variables": relevant_variables,

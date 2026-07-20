@@ -9,6 +9,7 @@ from psycopg.types.json import Jsonb
 
 FIELDS = (
     "electricity_peak_per_kwh",
+    "electricity_midpeak_per_kwh",
     "electricity_offpeak_per_kwh",
     "heat_per_mj",
     "co2_per_kg",
@@ -23,7 +24,8 @@ def get_tariff(database_url: str | None, site_id: UUID, cursor_date: date) -> di
         row = conn.execute(
             """
             select id, currency, effective_from, electricity_peak_per_kwh,
-                   electricity_offpeak_per_kwh, heat_per_mj, co2_per_kg,
+                   electricity_midpeak_per_kwh, electricity_offpeak_per_kwh,
+                   heat_per_mj, co2_per_kg,
                    water_per_m3, source, tou_windows, preset
             from app.tariff_profile
             where site_id=%s and effective_from<=%s
@@ -51,11 +53,13 @@ def put_tariff(database_url: str, organization_id: UUID, site_id: UUID, tariff: 
             insert into app.tariff_profile
                 (organization_id, site_id, currency, effective_from,
                  electricity_peak_per_kwh, electricity_offpeak_per_kwh,
-                 heat_per_mj, co2_per_kg, water_per_m3, source, tou_windows, preset)
-            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                 electricity_midpeak_per_kwh, heat_per_mj, co2_per_kg,
+                 water_per_m3, source, tou_windows, preset)
+            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             on conflict (site_id, effective_from) do update set
                 currency=excluded.currency,
                 electricity_peak_per_kwh=excluded.electricity_peak_per_kwh,
+                electricity_midpeak_per_kwh=excluded.electricity_midpeak_per_kwh,
                 electricity_offpeak_per_kwh=excluded.electricity_offpeak_per_kwh,
                 heat_per_mj=excluded.heat_per_mj,
                 co2_per_kg=excluded.co2_per_kg,
@@ -68,7 +72,8 @@ def put_tariff(database_url: str, organization_id: UUID, site_id: UUID, tariff: 
             (
                 organization_id, site_id, tariff["currency"], tariff["effective_from"],
                 tariff["electricity_peak_per_kwh"], tariff["electricity_offpeak_per_kwh"],
-                tariff["heat_per_mj"], tariff["co2_per_kg"], tariff["water_per_m3"],
+                tariff["electricity_midpeak_per_kwh"], tariff["heat_per_mj"],
+                tariff["co2_per_kg"], tariff["water_per_m3"],
                 tariff["source"], Jsonb(tariff["tou_windows"]), tariff.get("preset"),
             ),
         ).fetchone()
