@@ -439,6 +439,7 @@ def _business_impact(
     cumulative_excess_heat_cost_cad_per_1000m2 = None
     current_cost_to_cursor_cad_per_1000m2 = None
     remaining_target_potential_cad_per_1000m2 = None
+    remaining_target_potential_30d_run_rate_cad_per_1000m2 = None
     target_opportunity_cad_per_1000m2 = None
     heat_cost_30d_run_rate_cad_per_1000m2 = None
     remaining_target_potential_cad = None
@@ -501,6 +502,14 @@ def _business_impact(
                 * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
                 2,
             )
+            elapsed_days = performance.get("evaluation_elapsed_days")
+            if elapsed_days not in {None, 0}:
+                remaining_target_potential_30d_run_rate_cad_per_1000m2 = round(
+                    max(float(cumulative_actual) - float(cumulative_target), 0)
+                    * heat_rate * FINANCIAL_REFERENCE_AREA_M2
+                    / float(elapsed_days) * 30,
+                    2,
+                )
         if cumulative_expected is not None and cumulative_target is not None:
             target_opportunity_cad = round(
                 max(float(cumulative_expected) - float(cumulative_target), 0)
@@ -580,6 +589,7 @@ def _business_impact(
         "remaining_target_potential_mj_m2": remaining_target_potential_mj_m2,
         "remaining_target_potential_cad": remaining_target_potential_cad,
         "remaining_target_potential_cad_per_1000m2": remaining_target_potential_cad_per_1000m2,
+        "remaining_target_potential_30d_run_rate_cad_per_1000m2": remaining_target_potential_30d_run_rate_cad_per_1000m2,
         "target_opportunity_cad": target_opportunity_cad,
         "target_opportunity_cad_per_1000m2": target_opportunity_cad_per_1000m2,
         "target_achieved": target_achieved,

@@ -530,6 +530,12 @@ class ApiTests(unittest.TestCase):
         )
         self.assertEqual(impact_noon["cumulative_net_heat_cost_cad_per_1000m2"], -600.0)
         self.assertEqual(impact_noon["heat_cost_30d_run_rate_cad_per_1000m2"], -36000.0)
+        self.assertAlmostEqual(
+            impact_noon["remaining_target_potential_30d_run_rate_cad_per_1000m2"],
+            impact_noon["remaining_target_potential_cad_per_1000m2"]
+            / impact_noon["evaluation_elapsed_days"] * 30,
+            places=1,
+        )
         self.assertEqual(impact_noon["calculation_grain_minutes"], 5)
         self.assertEqual(impact_noon["calculation_intervals"], 3)
         self.assertEqual(impact_noon["cumulative_cost_state"], "overconsumption")

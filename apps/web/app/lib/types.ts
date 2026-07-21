@@ -34,6 +34,7 @@ export type Snapshot = {
     heat_cost_30d_run_rate_cad_per_1000m2:number|null; evaluation_elapsed_days:number|null;
     remaining_target_potential_mj_m2:number|null; remaining_target_potential_cad:number|null;
     remaining_target_potential_cad_per_1000m2:number|null;
+    remaining_target_potential_30d_run_rate_cad_per_1000m2:number|null;
     target_opportunity_cad:number|null; target_opportunity_cad_per_1000m2:number|null;
     target_achieved:boolean|null;
     target_improvement_pct:number; target_version:string; target_status:string; target_source:string;
