@@ -4,6 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from threading import Event
+from time import monotonic
 from uuid import UUID
 
 import httpx
@@ -44,6 +45,31 @@ DEMO_ENERGY_TARGET = {
     "source": "Varianz demo management objective",
 }
 FINANCIAL_REFERENCE_AREA_M2 = 1000.0
+TARIFF_CACHE_TTL_SECONDS = 60
+_tariff_cache: dict[tuple[str | None, str, str], tuple[float, dict | None]] = {}
+
+
+def _invalidate_tariff_cache() -> None:
+    _tariff_cache.clear()
+
+
+def _cached_tariff_profile(
+    site_id: UUID = SITE_ID,
+    effective_on: date | None = None,
+) -> dict | None:
+    """Avoid repeated Supabase connections while preserving immediate Settings updates."""
+    day = effective_on or date.today()
+    key = (settings.database_url, str(site_id), day.isoformat())
+    cached = _tariff_cache.get(key)
+    now = monotonic()
+    if cached and cached[0] > now:
+        return cached[1]
+    profile = get_tariff(settings.database_url, site_id, day)
+    _tariff_cache[key] = (now + TARIFF_CACHE_TTL_SECONDS, profile)
+    if len(_tariff_cache) > 16:
+        oldest = min(_tariff_cache, key=lambda item: _tariff_cache[item][0])
+        _tariff_cache.pop(oldest, None)
+    return profile
 
 
 async def _warm_operational_data() -> None:
@@ -653,7 +679,7 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
     data = _data()
     cursor = session.effective_cursor()
     try:
-        tariff_profile = get_tariff(settings.database_url, SITE_ID, date.today())
+        tariff_profile = _cached_tariff_profile()
     except psycopg.Error:
         tariff_profile = None
     tariff = _cost_tariff(tariff_profile)
@@ -944,7 +970,7 @@ def energy_resources(
     data = _data()
     cursor = pd.Timestamp(payload["cursor"])
     try:
-        tariff_profile = get_tariff(settings.database_url, SITE_ID, date.today())
+        tariff_profile = _cached_tariff_profile()
     except psycopg.Error:
         tariff_profile = None
     schedule_tariff = _schedule_tariff(tariff_profile)
@@ -1074,7 +1100,7 @@ def assistant_message(
     data = _data()
     cursor = pd.Timestamp(snapshot["cursor"])
     try:
-        tariff_profile = get_tariff(settings.database_url, SITE_ID, date.today())
+        tariff_profile = _cached_tariff_profile()
     except psycopg.Error:
         tariff_profile = None
     schedule_tariff = _schedule_tariff(tariff_profile)
@@ -1184,7 +1210,7 @@ def tariff_profile(
     if site_id != SITE_ID:
         raise HTTPException(404, "site_not_found")
     try:
-        profile = get_tariff(settings.database_url, site_id, effective_on or date.today())
+        profile = _cached_tariff_profile(site_id, effective_on)
     except psycopg.Error as exc:
         raise HTTPException(503, "tariff_store_unavailable") from exc
     return {"configured": bool(profile), "profile": profile}
@@ -1206,6 +1232,7 @@ def update_tariff_profile(
         )
     except psycopg.Error as exc:
         raise HTTPException(503, "tariff_store_unavailable") from exc
+    _invalidate_tariff_cache()
     return {"configured": True, "profile": profile}
 
 

@@ -83,6 +83,20 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
   },[accessToken,create]);
   useEffect(()=>{if(!data?.playing)return;const timer=setInterval(()=>refresh(data.session_id),2000);return()=>clearInterval(timer)},[data?.playing,data?.session_id,refresh]);
   useEffect(()=>{
+    if(!data||view==="energy"||energyData?.session_id===data.session_id)return;
+    let active=true;
+    const timer=setTimeout(async()=>{
+      try{
+        const response=await apiFetch(`/replay-sessions/${data.session_id}/energy-resources?window=${windowKey}&grain=${energyGrain}`);
+        if(response.status===401){await onSignOut();return}
+        if(!response.ok)return;
+        const prefetched:Snapshot=await response.json();
+        if(active)setEnergyData(prefetched);
+      }catch{ /* Background prefetch is optional; foreground loading retains error handling. */ }
+    },250);
+    return()=>{active=false;clearTimeout(timer)};
+  },[apiFetch,data?.session_id,energyData?.session_id,energyGrain,onSignOut,view,windowKey]);
+  useEffect(()=>{
     if(view!=="energy"||!data)return;
     let active=true,inFlight=false;
     const loadEnergy=async()=>{

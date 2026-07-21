@@ -41,7 +41,9 @@ from fastapi.testclient import TestClient
 from varianz.main import (
     _agent_evidence,
     _business_impact,
+    _cached_tariff_profile,
     _cost_tariff,
+    _invalidate_tariff_cache,
     _monetized_operational_exposure,
     _performance_accounting,
     _schedule_tariff,
@@ -437,6 +439,18 @@ class ApiTests(unittest.TestCase):
                     "electricity_offpeak_per_kwh": 0.1, "heat_per_mj": 0.01,
                     "co2_per_kg": 0.1, "water_per_m3": None}
         self.assertIs(_cost_tariff(complete), complete)
+
+    @patch("varianz.main.get_tariff")
+    def test_tariff_profile_cache_avoids_repeated_database_connections(self, get_tariff_mock):
+        get_tariff_mock.return_value = {"currency": "CAD"}
+        _invalidate_tariff_cache()
+        day = date(2020, 2, 1)
+        self.assertEqual(_cached_tariff_profile(effective_on=day), {"currency": "CAD"})
+        self.assertEqual(_cached_tariff_profile(effective_on=day), {"currency": "CAD"})
+        self.assertEqual(get_tariff_mock.call_count, 1)
+        _invalidate_tariff_cache()
+        _cached_tariff_profile(effective_on=day)
+        self.assertEqual(get_tariff_mock.call_count, 2)
 
     def test_business_impact_is_directional_and_area_scaled(self):
         baseline = {
