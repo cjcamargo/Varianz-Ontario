@@ -38,7 +38,7 @@ export function EnergyView({data,k,baseline,ask,grain,setGrain,openSettings}:Ene
     elec_provisional:point.quality==="provisional"?point.elec_kwh_m2:null,
     co2_allocated:point.quality==="provisional"?null:point.co2_kg_m2,
     co2_provisional:point.quality==="provisional"?point.co2_kg_m2:null,
-    cost_visible:intraday?.cost_configured?point.cost_cad_m2:null,
+    cost_visible:intraday?.cost_configured&&typeof point.cost_cad_m2==="number"?point.cost_cad_m2*1000:null,
   }));
   const efficiencyEvents=(data.anomalies||[]).filter(item=>item.category==="efficiency");
   return <>
@@ -67,7 +67,7 @@ export function EnergyView({data,k,baseline,ask,grain,setGrain,openSettings}:Ene
     </section>
     <section className="two-col efficiency-section">
       <article className="panel"><div className="panel-head"><div><span>EFFICIENCY EVENTS</span><h2>Prioritized operational conflicts</h2></div></div>{efficiencyEvents.length?<div className="efficiency-events">{efficiencyEvents.slice(0,6).map(event=><div key={event.id}><i className={`severity-dot ${event.severity}`}/><p><b>{event.message}</b><span>{event.duration_minutes} min · {event.confidence} confidence</span></p><button onClick={()=>ask(`Explain this efficiency event and give the operator one direct next action.`,event.id)}>Explain</button></div>)}</div>:<div className="no-data compact-empty">No persistent efficiency conflict in the visible evidence.</div>}</article>
-      <article className="panel cost-card"><span>INTRADAY OPERATING COST</span>{intraday?.cost_configured?<><h2>Configured tariff applied</h2><LineChart height={240} points={points} series={[{key:"cost_visible",name:`Cost ${intraday.currency||"CAD"}/m²`,color:"#d178ff"}]}/></>:<><h2>Configure Ontario tariffs</h2><p>Cost remains hidden until rates, schedule, effective date, and source are reviewed and versioned.</p></>}</article>
+      <article className="panel cost-card"><span>INTRADAY OPERATING COST · 1,000 M²</span>{intraday?.cost_configured?<><h2>Configured tariff applied</h2><LineChart height={240} points={points} series={[{key:"cost_visible",name:`Cost ${intraday.currency||"CAD"} / 1,000 m²`,color:"#d178ff"}]}/></>:<><h2>Configure Ontario tariffs</h2><p>Cost remains hidden until rates, schedule, effective date, and source are reviewed and versioned.</p></>}</article>
     </section>
     <ChartDateRange points={data.resource_series}>{filtered=><>
       <section className="two-col">

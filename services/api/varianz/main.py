@@ -43,6 +43,7 @@ DEMO_ENERGY_TARGET = {
     "status": "provisional_demo_target",
     "source": "Varianz demo management objective",
 }
+FINANCIAL_REFERENCE_AREA_M2 = 1000.0
 
 
 async def _warm_operational_data() -> None:
@@ -304,7 +305,93 @@ def _performance_accounting(
         "calculation_grain_minutes": 5,
         "calculation_intervals": len(ledger),
         "display_points": len(series),
+        "evaluation_elapsed_days": round(
+            max(
+                (timestamp - pd.Timestamp(evaluation_start)).total_seconds() / 86400,
+                5 / 1440,
+            ),
+            6,
+        ) if evaluation_start else None,
         "target": target,
+    }
+
+
+def _monetized_operational_exposure(
+    costed_intraday: pd.DataFrame,
+    operational: pd.DataFrame,
+    anomalies: list[dict],
+    cursor: datetime,
+    reference_area_m2: float = FINANCIAL_REFERENCE_AREA_M2,
+) -> dict:
+    """Price observed operating cost coincident with climate excursions and anomalies.
+
+    Exposure is not an avoidable-cost or causal-savings estimate. Event totals may overlap;
+    the aggregate anomaly exposure uses the union of event intervals to prevent double counting.
+    """
+    empty = {
+        "climate_cost_exposure_24h_cad_per_1000m2": None,
+        "climate_excursion_intervals_24h": 0,
+        "climate_eligible_intervals_24h": 0,
+        "anomaly_cost_exposure_7d_cad_per_1000m2": None,
+        "anomaly_exposure_intervals_7d": 0,
+        "monetized_anomaly_count": 0,
+        "anomaly_cost_by_id": {},
+        "exposure_definition": "Coincident operating cost; not verified avoidable savings.",
+    }
+    if costed_intraday.empty or "cost_cad_m2" not in costed_intraday:
+        return empty
+    costs = costed_intraday.copy()
+    costs["time"] = pd.to_datetime(costs.time, utc=True).dt.floor("5min")
+    costs = costs.groupby("time", as_index=False, sort=True).agg(
+        cost_cad_m2=("cost_cad_m2", "sum")
+    )
+    costs = costs[costs.cost_cad_m2.notna()]
+    if costs.empty:
+        return empty
+
+    cursor_ts = pd.Timestamp(cursor)
+    climate_start = cursor_ts - pd.Timedelta(hours=24)
+    climate_costs = costs[(costs.time >= climate_start) & (costs.time <= cursor_ts)]
+    climate = operational.copy()
+    climate["time"] = pd.to_datetime(climate.observed_at, utc=True).dt.floor("5min")
+    climate = climate[(climate.time >= climate_start) & (climate.time <= cursor_ts)]
+    climate = climate.groupby("time", as_index=False, sort=True).agg(
+        Tair=("Tair", "last"), Rhair=("Rhair", "last")
+    )
+    aligned = climate_costs.merge(climate, on="time", how="inner")
+    eligible = aligned.Tair.notna() & aligned.Rhair.notna()
+    excursion = eligible & (~aligned.Tair.between(18, 26) | ~aligned.Rhair.between(55, 90))
+    climate_exposure = float(aligned.loc[excursion, "cost_cad_m2"].sum()) * reference_area_m2
+
+    anomaly_start = cursor_ts - pd.Timedelta(days=7)
+    anomaly_costs = costs[(costs.time >= anomaly_start) & (costs.time <= cursor_ts)].copy()
+    union_mask = pd.Series(False, index=anomaly_costs.index)
+    anomaly_cost_by_id: dict[str, float] = {}
+    for event in anomalies:
+        started = max(pd.to_datetime(event["started_at"], utc=True), anomaly_start)
+        duration = max(int(event.get("duration_minutes") or 0), 5)
+        ended = min(
+            started + pd.Timedelta(minutes=duration),
+            cursor_ts + pd.Timedelta(minutes=5),
+        )
+        event_mask = (anomaly_costs.time >= started) & (anomaly_costs.time < ended)
+        if not bool(event_mask.any()):
+            continue
+        anomaly_cost_by_id[event["id"]] = round(
+            float(anomaly_costs.loc[event_mask, "cost_cad_m2"].sum()) * reference_area_m2,
+            2,
+        )
+        union_mask |= event_mask
+    anomaly_exposure = float(anomaly_costs.loc[union_mask, "cost_cad_m2"].sum()) * reference_area_m2
+    return {
+        "climate_cost_exposure_24h_cad_per_1000m2": round(climate_exposure, 2),
+        "climate_excursion_intervals_24h": int(excursion.sum()),
+        "climate_eligible_intervals_24h": int(eligible.sum()),
+        "anomaly_cost_exposure_7d_cad_per_1000m2": round(anomaly_exposure, 2),
+        "anomaly_exposure_intervals_7d": int(union_mask.sum()),
+        "monetized_anomaly_count": len(anomaly_cost_by_id),
+        "anomaly_cost_by_id": anomaly_cost_by_id,
+        "exposure_definition": "Coincident operating cost; not verified avoidable savings.",
     }
 
 
@@ -314,9 +401,11 @@ def _business_impact(
     growing_area_m2: float,
     current_cost_cad_m2: float | None = None,
     performance: dict | None = None,
+    operational_exposure: dict | None = None,
 ) -> dict:
     """Translate analytical evidence into stakeholder-facing, non-causal impact metrics."""
     performance = performance or {}
+    operational_exposure = operational_exposure or {}
     actual = performance.get("actual_to_cursor_mj_m2")
     expected = performance.get("baseline_to_cursor_mj_m2")
     if actual is None and baseline.get("status") == "ready":
@@ -348,6 +437,10 @@ def _business_impact(
     cumulative_net_heat_cost_cad_per_1000m2 = None
     cumulative_avoided_heat_cost_cad_per_1000m2 = None
     cumulative_excess_heat_cost_cad_per_1000m2 = None
+    current_cost_to_cursor_cad_per_1000m2 = None
+    remaining_target_potential_cad_per_1000m2 = None
+    target_opportunity_cad_per_1000m2 = None
+    heat_cost_30d_run_rate_cad_per_1000m2 = None
     remaining_target_potential_cad = None
     target_opportunity_cad = None
     cumulative_actual = performance.get("cumulative_actual_mj_m2")
@@ -362,29 +455,37 @@ def _business_impact(
             heat_variance_cad = round(
                 (float(expected) - float(actual))
                 * heat_rate
-                * growing_area_m2,
+                * FINANCIAL_REFERENCE_AREA_M2,
                 2,
             )
         if cumulative_comparable:
             cumulative_heat_variance_cad = round(
                 (float(cumulative_expected) - float(cumulative_actual))
-                * heat_rate * growing_area_m2,
+                * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
                 4,
             )
             cumulative_net_heat_cost_cad_per_1000m2 = round(
                 (float(cumulative_expected) - float(cumulative_actual)) * heat_rate * 1000,
                 2,
             )
+            elapsed_days = performance.get("evaluation_elapsed_days")
+            if elapsed_days not in {None, 0}:
+                heat_cost_30d_run_rate_cad_per_1000m2 = round(
+                    (float(cumulative_expected) - float(cumulative_actual))
+                    * heat_rate * FINANCIAL_REFERENCE_AREA_M2
+                    / float(elapsed_days) * 30,
+                    2,
+                )
         if cumulative_avoided is not None:
             cumulative_avoided_heat_cost_cad = round(
-                float(cumulative_avoided) * heat_rate * growing_area_m2, 4
+                float(cumulative_avoided) * heat_rate * FINANCIAL_REFERENCE_AREA_M2, 4
             )
             cumulative_avoided_heat_cost_cad_per_1000m2 = round(
                 float(cumulative_avoided) * heat_rate * 1000, 2
             )
         if cumulative_excess is not None:
             cumulative_excess_heat_cost_cad = round(
-                float(cumulative_excess) * heat_rate * growing_area_m2, 4
+                float(cumulative_excess) * heat_rate * FINANCIAL_REFERENCE_AREA_M2, 4
             )
             cumulative_excess_heat_cost_cad_per_1000m2 = round(
                 float(cumulative_excess) * heat_rate * 1000, 2
@@ -392,19 +493,33 @@ def _business_impact(
         if cumulative_actual is not None and cumulative_target is not None:
             remaining_target_potential_cad = round(
                 max(float(cumulative_actual) - float(cumulative_target), 0)
-                * heat_rate * growing_area_m2,
+                * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
+                2,
+            )
+            remaining_target_potential_cad_per_1000m2 = round(
+                max(float(cumulative_actual) - float(cumulative_target), 0)
+                * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
                 2,
             )
         if cumulative_expected is not None and cumulative_target is not None:
             target_opportunity_cad = round(
                 max(float(cumulative_expected) - float(cumulative_target), 0)
-                * heat_rate * growing_area_m2,
+                * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
+                2,
+            )
+            target_opportunity_cad_per_1000m2 = round(
+                max(float(cumulative_expected) - float(cumulative_target), 0)
+                * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
                 2,
             )
     current_cost_cad = (
-        round(current_cost_cad_m2 * growing_area_m2, 2)
+        round(current_cost_cad_m2 * FINANCIAL_REFERENCE_AREA_M2, 2)
         if current_cost_cad_m2 is not None else None
     )
+    if current_cost_cad_m2 is not None:
+        current_cost_to_cursor_cad_per_1000m2 = round(
+            current_cost_cad_m2 * FINANCIAL_REFERENCE_AREA_M2, 2
+        )
     status = (
         "baseline_required" if not comparable and not cumulative_comparable
         else "tariff_required" if tariff is None
@@ -428,10 +543,17 @@ def _business_impact(
         heat_rate = float(tariff["heat_per_mj"])
         for point in performance_series:
             point["net_cumulative_cad"] = round(
-                float(point["net_cumulative_mj_m2"]) * heat_rate * growing_area_m2,
+                float(point["net_cumulative_mj_m2"])
+                * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
                 4,
             )
             point["break_even_cad"] = 0.0
+            point["net_cumulative_cad_per_1000m2"] = round(
+                float(point["net_cumulative_mj_m2"])
+                * heat_rate * FINANCIAL_REFERENCE_AREA_M2,
+                4,
+            )
+            point["break_even_cad_per_1000m2"] = 0.0
     cumulative_cost_state = (
         "saving" if cumulative_heat_variance_cad is not None and cumulative_heat_variance_cad > 0
         else "overconsumption" if cumulative_heat_variance_cad is not None and cumulative_heat_variance_cad < 0
@@ -453,9 +575,13 @@ def _business_impact(
         "cumulative_net_heat_cost_cad_per_1000m2": cumulative_net_heat_cost_cad_per_1000m2,
         "cumulative_avoided_heat_cost_cad_per_1000m2": cumulative_avoided_heat_cost_cad_per_1000m2,
         "cumulative_excess_heat_cost_cad_per_1000m2": cumulative_excess_heat_cost_cad_per_1000m2,
+        "heat_cost_30d_run_rate_cad_per_1000m2": heat_cost_30d_run_rate_cad_per_1000m2,
+        "evaluation_elapsed_days": performance.get("evaluation_elapsed_days"),
         "remaining_target_potential_mj_m2": remaining_target_potential_mj_m2,
         "remaining_target_potential_cad": remaining_target_potential_cad,
+        "remaining_target_potential_cad_per_1000m2": remaining_target_potential_cad_per_1000m2,
         "target_opportunity_cad": target_opportunity_cad,
+        "target_opportunity_cad_per_1000m2": target_opportunity_cad_per_1000m2,
         "target_achieved": target_achieved,
         "target_improvement_pct": target["improvement_pct"],
         "target_version": target["version"],
@@ -478,16 +604,19 @@ def _business_impact(
         "calculation_intervals": performance.get("calculation_intervals", 0),
         "display_points": performance.get("display_points", 0),
         "current_cost_to_cursor_cad": current_cost_cad,
+        "current_cost_to_cursor_cad_per_1000m2": current_cost_to_cursor_cad_per_1000m2,
         "currency": tariff.get("currency") if tariff else None,
         "heat_tariff_cad_per_mj": tariff.get("heat_per_mj") if tariff else None,
         "tariff_source": tariff.get("source") if tariff else None,
         "monetary_status": "configured_scenario" if tariff else "tariff_required",
-        "area_basis_m2": growing_area_m2,
+        "area_basis_m2": FINANCIAL_REFERENCE_AREA_M2,
+        "source_growing_area_m2": growing_area_m2,
+        "financial_reference_area_m2": FINANCIAL_REFERENCE_AREA_M2,
         "comparison_as_of": baseline.get("artifact_as_of"),
         "tariff_effective_from": tariff.get("effective_from") if tariff else None,
         "confidence": baseline.get("confidence") if comparable else None,
         "baseline_model": baseline.get("selected_model") if comparable else None,
-        "cost_scope": "Operating cost: heat, electricity and CO2 from start of day. Performance value: heat since EnB became available.",
+        "cost_scope": "Stakeholder monetary values are normalized to 1,000 m2. Operating cost covers heat, electricity and CO2; performance value covers heat since EnB became available.",
         "comparison_scope": "Point-in-time and cumulative heat intensity versus weather-normalized EnB and provisional management target",
         "disclaimer": "ISO-aligned EnPI/EnB accounting; the 5% demo target is not prescribed by ISO and values are association-based estimates.",
         "tariff_application": "Configured tariff scenario applied to the historical demo replay",
@@ -496,6 +625,7 @@ def _business_impact(
             f"target:{target['version']}",
             *([f"tariff:{tariff['id']}"] if tariff and tariff.get("id") else []),
         ])),
+        **{key: value for key, value in operational_exposure.items() if key != "anomaly_cost_by_id"},
     }
 
 
@@ -571,18 +701,25 @@ def _snapshot(session_id: UUID, window: str, principal: Principal) -> dict:
         cache_source=data.intraday_backend,
     )
     current_cost_cad_m2 = None
+    costed_intraday = apply_intraday_cost(performance_intraday, tariff)
     if tariff:
-        current_day = performance_intraday[
-            pd.to_datetime(performance_intraday.time, utc=True).dt.floor("D") == day_start
+        current_day = costed_intraday[
+            pd.to_datetime(costed_intraday.time, utc=True).dt.floor("D") == day_start
         ]
-        costed = apply_intraday_cost(current_day, tariff)
-        costs = costed["cost_cad_m2"].dropna()
+        costs = current_day["cost_cad_m2"].dropna()
         current_cost_cad_m2 = float(costs.sum()) if not costs.empty else None
     performance = _performance_accounting(
         snapshot["baseline"], cursor, performance_intraday
     )
+    exposure = _monetized_operational_exposure(
+        costed_intraday, data.operational, snapshot["anomalies"], cursor
+    )
+    anomaly_cost_by_id = exposure.get("anomaly_cost_by_id", {})
+    for event in snapshot["anomalies"]:
+        event["cost_exposure_cad_per_1000m2"] = anomaly_cost_by_id.get(event["id"])
+        event["cost_exposure_scope"] = exposure["exposure_definition"]
     snapshot["business_impact"] = _business_impact(
-        snapshot["baseline"], tariff, 62.5, current_cost_cad_m2, performance
+        snapshot["baseline"], tariff, 62.5, current_cost_cad_m2, performance, exposure
     )
     snapshot["evidence_ids"] = list(dict.fromkeys([
         *snapshot["evidence_ids"], *snapshot["business_impact"]["evidence_ids"]
@@ -872,7 +1009,7 @@ def climate(
         for key in [
             "session_id", "revision", "cursor", "window", "site", "data_version",
             "definitions_version", "model_version", "quality", "replay", "evidence_ids", "kpis",
-            "latest", "climate_series", "anomalies", "metric_definitions",
+            "latest", "climate_series", "anomalies", "metric_definitions", "business_impact",
         ]
     }
 
@@ -889,6 +1026,7 @@ def anomalies(
         for key in [
             "session_id", "revision", "cursor", "data_version", "definitions_version",
             "model_version", "quality", "replay", "evidence_ids", "anomalies",
+            "business_impact",
         ]
     }
 

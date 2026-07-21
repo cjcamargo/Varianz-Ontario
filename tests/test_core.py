@@ -42,6 +42,7 @@ from varianz.main import (
     _agent_evidence,
     _business_impact,
     _cost_tariff,
+    _monetized_operational_exposure,
     _performance_accounting,
     _schedule_tariff,
     app,
@@ -447,9 +448,33 @@ class ApiTests(unittest.TestCase):
         impact = _business_impact(baseline, tariff, 62.5, current_cost_cad_m2=0.5)
         self.assertEqual(impact["energy_performance_pct"], 20.0)
         self.assertEqual(impact["performance_state"], "favorable")
-        self.assertEqual(impact["estimated_heat_cost_variance_cad"], 12.5)
-        self.assertEqual(impact["current_cost_to_cursor_cad"], 31.25)
+        self.assertEqual(impact["estimated_heat_cost_variance_cad"], 200.0)
+        self.assertEqual(impact["current_cost_to_cursor_cad"], 500.0)
+        self.assertEqual(impact["current_cost_to_cursor_cad_per_1000m2"], 500.0)
+        self.assertEqual(impact["financial_reference_area_m2"], 1000.0)
         self.assertIn("tariff:tariff-1", impact["evidence_ids"])
+
+    def test_climate_and_anomaly_cost_exposure_uses_interval_union(self):
+        times = pd.to_datetime([
+            "2020-02-01T00:00:00Z", "2020-02-01T00:05:00Z",
+            "2020-02-01T00:10:00Z",
+        ])
+        costed = pd.DataFrame({"time": times, "cost_cad_m2": [0.1, 0.2, 0.3]})
+        operational = pd.DataFrame({
+            "observed_at": times, "Tair": [22, 30, 22], "Rhair": [70, 70, 95],
+        })
+        anomalies = [{
+            "id": "event-1", "started_at": times[1].isoformat(),
+            "duration_minutes": 10,
+        }]
+        exposure = _monetized_operational_exposure(
+            costed, operational, anomalies, times[-1].to_pydatetime()
+        )
+        self.assertEqual(exposure["climate_cost_exposure_24h_cad_per_1000m2"], 500.0)
+        self.assertEqual(exposure["climate_excursion_intervals_24h"], 2)
+        self.assertEqual(exposure["anomaly_cost_exposure_7d_cad_per_1000m2"], 500.0)
+        self.assertEqual(exposure["anomaly_exposure_intervals_7d"], 2)
+        self.assertEqual(exposure["anomaly_cost_by_id"]["event-1"], 500.0)
 
     def test_business_impact_hides_money_without_tariff(self):
         impact = _business_impact(
@@ -494,16 +519,17 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(impact_noon["energy_performance_pct"], -200.0)
         self.assertGreater(impact_six["cumulative_estimated_heat_cost_variance_cad"], 0)
         self.assertLess(impact_noon["cumulative_estimated_heat_cost_variance_cad"], 0)
-        self.assertEqual(impact_six["cumulative_avoided_heat_cost_cad"], 6.25)
+        self.assertEqual(impact_six["cumulative_avoided_heat_cost_cad"], 100.0)
         self.assertEqual(impact_six["cumulative_excess_heat_cost_cad"], 0.0)
-        self.assertEqual(impact_noon["cumulative_avoided_heat_cost_cad"], 6.25)
-        self.assertEqual(impact_noon["cumulative_excess_heat_cost_cad"], 43.75)
+        self.assertEqual(impact_noon["cumulative_avoided_heat_cost_cad"], 100.0)
+        self.assertEqual(impact_noon["cumulative_excess_heat_cost_cad"], 700.0)
         self.assertEqual(
             impact_noon["cumulative_estimated_heat_cost_variance_cad"],
             impact_noon["cumulative_avoided_heat_cost_cad"]
             - impact_noon["cumulative_excess_heat_cost_cad"],
         )
         self.assertEqual(impact_noon["cumulative_net_heat_cost_cad_per_1000m2"], -600.0)
+        self.assertEqual(impact_noon["heat_cost_30d_run_rate_cad_per_1000m2"], -36000.0)
         self.assertEqual(impact_noon["calculation_grain_minutes"], 5)
         self.assertEqual(impact_noon["calculation_intervals"], 3)
         self.assertEqual(impact_noon["cumulative_cost_state"], "overconsumption")

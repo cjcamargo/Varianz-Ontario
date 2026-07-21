@@ -7,6 +7,7 @@ export type Anomaly = {
   started_at: string; duration_minutes: number; observed: number | null;
   expected: number | null; residual: number | null; confidence: string;
   contributors: string[]; evidence_ids: string[]; active: boolean;
+  cost_exposure_cad_per_1000m2?:number|null; cost_exposure_scope?:string;
 };
 
 export type Snapshot = {
@@ -30,8 +31,11 @@ export type Snapshot = {
     cumulative_net_heat_cost_cad_per_1000m2:number|null;
     cumulative_avoided_heat_cost_cad_per_1000m2:number|null;
     cumulative_excess_heat_cost_cad_per_1000m2:number|null;
+    heat_cost_30d_run_rate_cad_per_1000m2:number|null; evaluation_elapsed_days:number|null;
     remaining_target_potential_mj_m2:number|null; remaining_target_potential_cad:number|null;
-    target_opportunity_cad:number|null; target_achieved:boolean|null;
+    remaining_target_potential_cad_per_1000m2:number|null;
+    target_opportunity_cad:number|null; target_opportunity_cad_per_1000m2:number|null;
+    target_achieved:boolean|null;
     target_improvement_pct:number; target_version:string; target_status:string; target_source:string;
     actual_to_cursor_mj_m2:number|null; baseline_to_cursor_mj_m2:number|null;
     target_to_cursor_mj_m2:number|null; cumulative_actual_mj_m2:number|null;
@@ -41,7 +45,15 @@ export type Snapshot = {
     performance_series:Point[]; evaluation_start:string|null;
     completed_evaluation_days:number; current_day_provisional:boolean;
     calculation_grain_minutes:number; calculation_intervals:number; display_points:number;
-    currency:string|null; area_basis_m2:number; comparison_as_of:string|null;
+    current_cost_to_cursor_cad_per_1000m2:number|null;
+    climate_cost_exposure_24h_cad_per_1000m2:number|null;
+    climate_excursion_intervals_24h:number; climate_eligible_intervals_24h:number;
+    anomaly_cost_exposure_7d_cad_per_1000m2:number|null;
+    anomaly_exposure_intervals_7d:number; monetized_anomaly_count:number;
+    exposure_definition:string;
+    currency:string|null; area_basis_m2:number; source_growing_area_m2:number;
+    financial_reference_area_m2:number;
+    comparison_as_of:string|null;
     heat_tariff_cad_per_mj:number|null; tariff_source:string|null; monetary_status:string;
     tariff_effective_from:string|null; confidence:string|null; baseline_model:string|null;
     cost_scope:string; comparison_scope:string; disclaimer:string; tariff_application:string; evidence_ids:string[];
