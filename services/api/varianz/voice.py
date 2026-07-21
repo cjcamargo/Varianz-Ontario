@@ -6,7 +6,10 @@ from .config import Settings
 
 
 class TranscriptionUnavailable(RuntimeError):
-    pass
+    def __init__(self, code: str, status_code: int = 503):
+        super().__init__(code)
+        self.code = code
+        self.status_code = status_code
 
 
 class SpeechUnavailable(RuntimeError):
@@ -38,10 +41,26 @@ async def transcribe_audio(
             )
             response.raise_for_status()
     except httpx.HTTPStatusError as exc:
-        raise TranscriptionUnavailable("openai_transcription_error") from exc
+        status = exc.response.status_code
+        if status in {400, 422}:
+            raise TranscriptionUnavailable("invalid_audio", 422) from exc
+        if status == 413:
+            raise TranscriptionUnavailable("audio_too_large", 413) from exc
+        if status == 429:
+            raise TranscriptionUnavailable("transcription_rate_limited", 429) from exc
+        if status in {401, 403}:
+            raise TranscriptionUnavailable("openai_auth_error") from exc
+        if status == 404:
+            raise TranscriptionUnavailable("transcription_model_unavailable") from exc
+        raise TranscriptionUnavailable("openai_transcription_unavailable") from exc
+    except httpx.TimeoutException as exc:
+        raise TranscriptionUnavailable("transcription_timeout", 504) from exc
     except httpx.RequestError as exc:
         raise TranscriptionUnavailable("openai_connection_unavailable") from exc
-    text = str(response.json().get("text", "")).strip()
+    try:
+        text = str(response.json().get("text", "")).strip()
+    except (ValueError, AttributeError) as exc:
+        raise TranscriptionUnavailable("invalid_transcription_response") from exc
     if not text:
         raise TranscriptionUnavailable("empty_transcription")
     return {"text": text, "model": settings.openai_transcription_model}

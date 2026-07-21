@@ -43,16 +43,18 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
     return fetch(`${API}${path}`,{...init,headers});
   },[accessToken]);
 
-  const refresh=useCallback(async(id:string,windowValue:WindowKey=windowKey,allowRecreate=true):Promise<void>=>{
-    requestRef.current?.abort();const controller=new AbortController();requestRef.current=controller;
+  const refresh=useCallback(async(id:string,windowValue:WindowKey=windowKey,allowRecreate=true,replaceInFlight=true):Promise<void>=>{
+    if(requestRef.current){if(!replaceInFlight)return;requestRef.current.abort()}
+    const controller=new AbortController();requestRef.current=controller;
     let response:Response;
     try{response=await apiFetch(`/replay-sessions/${id}/overview?window=${windowValue}`,{signal:controller.signal})}
     catch(e){if(controller.signal.aborted||(e instanceof DOMException&&e.name==="AbortError"))return;throw e}
+    finally{if(requestRef.current===controller)requestRef.current=null}
     if(response.status===401){await onSignOut();return}
     if(response.status===404&&allowRecreate){const created=await apiFetch("/replay-sessions",{method:"POST"});if(!created.ok)throw new Error("Could not restore the replay session.");const session=await created.json();return refresh(session.id,windowValue,false)}
     if(!response.ok)throw new Error("Analytics API unavailable");
     const next:Snapshot=await response.json();
-    setData(current=>!current||next.revision>=current.revision?next:current);setError("");setLoading(false);
+    setData(current=>!current||next.revision>current.revision||(next.revision===current.revision&&Date.parse(next.cursor)>=Date.parse(current.cursor))?next:current);setError("");setLoading(false);
   },[apiFetch,onSignOut,windowKey]);
 
   const waitForApiReady=useCallback(async()=>{
@@ -81,7 +83,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
     initializedTokenRef.current=accessToken;
     void create();
   },[accessToken,create]);
-  useEffect(()=>{if(!data?.playing)return;const timer=setInterval(()=>refresh(data.session_id),2000);return()=>clearInterval(timer)},[data?.playing,data?.session_id,refresh]);
+  useEffect(()=>{if(!data?.playing)return;const timer=setInterval(()=>refresh(data.session_id,windowKey,true,false),2000);return()=>clearInterval(timer)},[data?.playing,data?.session_id,refresh,windowKey]);
   useEffect(()=>{
     if(!data||view==="energy"||energyData?.session_id===data.session_id)return;
     let active=true;
@@ -162,7 +164,8 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       const response=await apiFetch(`/replay-sessions/${data.session_id}/assistant/transcriptions`,{method:"POST",body});
       if(response.status===401){await onSignOut();return}
       if(!response.ok){
-        const message=response.status===413?"Voice message is too large. Keep recordings under one minute.":response.status===415?"This browser audio format is not supported.":"Varianz could not transcribe the voice message.";
+        let detail="";try{const payload=await response.json();detail=typeof payload?.detail==="string"?payload.detail:""}catch{}
+        const message=response.status===413?"Voice message is too large. Keep recordings under one minute.":response.status===415?"This browser audio format is not supported.":response.status===422?"The recording could not be decoded. Speak for at least one second and retry.":response.status===429?"Voice transcription is temporarily rate limited. Retry in a moment.":detail==="transcription_timeout"?"Voice transcription timed out. Retry with a shorter recording.":detail==="openai_auth_error"?"Voice transcription credentials are not accepted by OpenAI.":detail==="transcription_model_unavailable"?"The configured transcription model is unavailable.":detail==="openai_not_configured"?"Voice transcription is not configured on the API.":"Varianz could not reach the transcription service. Please retry.";
         throw new Error(message);
       }
       const result:{transcript:string}=await response.json();

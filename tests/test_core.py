@@ -37,6 +37,7 @@ from varianz.energy import (
     tou_peak_mask,
 )
 from varianz.replay import ReplaySession
+from varianz.voice import TranscriptionUnavailable
 from fastapi.testclient import TestClient
 from varianz.main import (
     _agent_evidence,
@@ -585,6 +586,18 @@ class ApiTests(unittest.TestCase):
             files={"audio": ("voice.txt", b"not-audio", "text/plain")},
         )
         self.assertEqual(response.status_code, 415)
+
+    def test_voice_transcription_surfaces_decoding_failure(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        failure = TranscriptionUnavailable("invalid_audio", 422)
+        with patch("varianz.main.transcribe_audio", new=AsyncMock(side_effect=failure)):
+            response = client.post(
+                f"/api/v1/replay-sessions/{session['id']}/assistant/transcriptions",
+                files={"audio": ("voice.webm", b"invalid-container", "audio/webm")},
+            )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["detail"], "invalid_audio")
 
     def test_speech_reply_fails_closed_without_server_key(self):
         client = TestClient(app)

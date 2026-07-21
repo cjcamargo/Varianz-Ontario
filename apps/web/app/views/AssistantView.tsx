@@ -13,6 +13,7 @@ function VoiceRecorder({busy,onVoice}:{busy:boolean;onVoice:(audio:Blob)=>Promis
   const [recording,setRecording]=useState(false),[error,setError]=useState("");
   const recorderRef=useRef<MediaRecorder|null>(null),streamRef=useRef<MediaStream|null>(null);
   const chunksRef=useRef<Blob[]>([]),timerRef=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const startedAtRef=useRef(0);
   const stop=()=>{if(timerRef.current)clearTimeout(timerRef.current);timerRef.current=null;const recorder=recorderRef.current;if(recorder&&recorder.state!=="inactive")recorder.stop()};
   useEffect(()=>()=>{if(timerRef.current)clearTimeout(timerRef.current);const recorder=recorderRef.current;if(recorder&&recorder.state!=="inactive")recorder.stop();streamRef.current?.getTracks().forEach(track=>track.stop())},[]);
   async function toggle(){
@@ -22,16 +23,18 @@ function VoiceRecorder({busy,onVoice}:{busy:boolean;onVoice:(audio:Blob)=>Promis
       setError("");
       const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
       streamRef.current=stream;chunksRef.current=[];
-      const candidates=["audio/webm;codecs=opus","audio/mp4","audio/ogg;codecs=opus"];
+      const candidates=["audio/webm;codecs=opus","audio/mp4;codecs=mp4a.40.2","audio/mp4","audio/ogg;codecs=opus"];
       const mimeType=candidates.find(type=>MediaRecorder.isTypeSupported(type));
-      const recorder=new MediaRecorder(stream,mimeType?{mimeType}:undefined);recorderRef.current=recorder;
+      const recorder=new MediaRecorder(stream,mimeType?{mimeType,audioBitsPerSecond:64000}:{audioBitsPerSecond:64000});recorderRef.current=recorder;
       recorder.ondataavailable=event=>{if(event.data.size)chunksRef.current.push(event.data)};
+      recorder.onerror=()=>setError("The browser could not encode this recording. Please retry.");
       recorder.onstop=async()=>{
         setRecording(false);stream.getTracks().forEach(track=>track.stop());streamRef.current=null;
         const audio=new Blob(chunksRef.current,{type:recorder.mimeType||"audio/webm"});chunksRef.current=[];
-        if(audio.size)await onVoice(audio);
+        if(Date.now()-startedAtRef.current<900){setError("Speak for at least one second before stopping.");return}
+        if(audio.size)await onVoice(audio);else setError("No audio was captured. Check the microphone and retry.");
       };
-      recorder.start(250);setRecording(true);timerRef.current=setTimeout(stop,60000);
+      startedAtRef.current=Date.now();recorder.start();setRecording(true);timerRef.current=setTimeout(stop,60000);
     }catch{setError("Microphone access was not granted. Allow it in your browser and try again.")}
   }
   return <div className="voice-control"><button type="button" className={recording?"voice-button recording":"voice-button"} onClick={toggle} disabled={busy&&!recording} aria-label={recording?"Stop and transcribe voice message":"Start voice message"}><span>{recording?"■":"●"}</span>{recording?"Stop":"Talk"}</button><small>{recording?"Listening — tap Stop when finished":busy?"Transcribing voice…":"Ask Varianz by voice · up to 60 seconds"}</small>{error?<em>{error}</em>:null}</div>;

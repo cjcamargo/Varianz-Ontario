@@ -884,6 +884,11 @@ def health():
         "data_ready": _data_is_ready(),
         "baseline_artifact": baseline_artifact_status(),
         "intraday_artifact": intraday_artifact_status(),
+        "openai": {
+            "configured": bool(settings.openai_api_key),
+            "transcription_model": settings.openai_transcription_model,
+            "speech_model": settings.openai_speech_model,
+        },
     }
 
 
@@ -1167,7 +1172,7 @@ async def assistant_transcription(
             settings,
         )
     except TranscriptionUnavailable as exc:
-        raise HTTPException(503, str(exc)) from exc
+        raise HTTPException(exc.status_code, exc.code) from exc
     return {
         "session_id": session_id,
         "transcript": result["text"],
