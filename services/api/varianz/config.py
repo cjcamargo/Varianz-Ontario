@@ -17,9 +17,8 @@ class Settings(BaseSettings):
     dataset_zip: Path = Field(PROJECT_ROOT / "Wageningen MVP Dataset.zip", validation_alias="DATASET_ZIP")
     openai_api_key: str | None = Field(None, validation_alias="OPENAI_API_KEY")
     openai_model: str = Field("gpt-5.6-luna", validation_alias="OPENAI_MODEL")
-    openai_transcription_model: str = Field(
-        "whisper-1", validation_alias="OPENAI_TRANSCRIPTION_MODEL"
-    )
+    openai_live_model: str = Field("gpt-live-1", validation_alias="OPENAI_LIVE_MODEL")
+    openai_live_voice: str = Field("marin", validation_alias="OPENAI_LIVE_VOICE")
     openai_speech_model: str = Field("tts-1", validation_alias="OPENAI_SPEECH_MODEL")
     openai_voice: str = Field("alloy", validation_alias="OPENAI_VOICE")
     openai_timeout_seconds: float = Field(60, validation_alias="OPENAI_TIMEOUT_SECONDS")

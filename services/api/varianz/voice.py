@@ -5,7 +5,7 @@ import httpx
 from .config import Settings
 
 
-class TranscriptionUnavailable(RuntimeError):
+class LiveSessionUnavailable(RuntimeError):
     def __init__(self, code: str, status_code: int = 503):
         super().__init__(code)
         self.code = code
@@ -16,54 +16,42 @@ class SpeechUnavailable(RuntimeError):
     pass
 
 
-async def transcribe_audio(
-    content: bytes,
-    filename: str,
-    content_type: str,
-    settings: Settings,
-) -> dict:
+def create_live_session(sdp: str, session: dict, settings: Settings) -> dict:
+    """Open a GPT-Live WebRTC session server-side so the API key never reaches the browser."""
     if not settings.openai_api_key:
-        raise TranscriptionUnavailable("openai_not_configured")
+        raise LiveSessionUnavailable("openai_not_configured")
     try:
-        async with httpx.AsyncClient(timeout=settings.openai_timeout_seconds) as client:
-            response = await client.post(
-                "https://api.openai.com/v1/audio/transcriptions",
+        with httpx.Client(timeout=settings.openai_timeout_seconds) as client:
+            response = client.post(
+                "https://api.openai.com/v1/live/sessions",
                 headers={"Authorization": f"Bearer {settings.openai_api_key}"},
-                files={"file": (filename, content, content_type)},
-                data={
-                    "model": settings.openai_transcription_model,
-                    "response_format": "json",
-                    "prompt": (
-                        "Varianz greenhouse operations: Wageningen, heating, electricity, "
-                        "carbon dioxide, irrigation, drainage, humidity deficit, setpoints."
-                    ),
-                },
+                json={"session": session, "transport": {"type": "webrtc", "sdp": sdp}},
             )
             response.raise_for_status()
     except httpx.HTTPStatusError as exc:
         status = exc.response.status_code
         if status in {400, 422}:
-            raise TranscriptionUnavailable("invalid_audio", 422) from exc
-        if status == 413:
-            raise TranscriptionUnavailable("audio_too_large", 413) from exc
+            raise LiveSessionUnavailable("invalid_live_session_request", 422) from exc
         if status == 429:
-            raise TranscriptionUnavailable("transcription_rate_limited", 429) from exc
+            raise LiveSessionUnavailable("live_rate_limited", 429) from exc
         if status in {401, 403}:
-            raise TranscriptionUnavailable("openai_auth_error") from exc
+            raise LiveSessionUnavailable("openai_auth_error") from exc
         if status == 404:
-            raise TranscriptionUnavailable("transcription_model_unavailable") from exc
-        raise TranscriptionUnavailable("openai_transcription_unavailable") from exc
+            raise LiveSessionUnavailable("live_model_unavailable") from exc
+        raise LiveSessionUnavailable("openai_live_unavailable") from exc
     except httpx.TimeoutException as exc:
-        raise TranscriptionUnavailable("transcription_timeout", 504) from exc
+        raise LiveSessionUnavailable("live_session_timeout", 504) from exc
     except httpx.RequestError as exc:
-        raise TranscriptionUnavailable("openai_connection_unavailable") from exc
+        raise LiveSessionUnavailable("openai_connection_unavailable") from exc
     try:
-        text = str(response.json().get("text", "")).strip()
-    except (ValueError, AttributeError) as exc:
-        raise TranscriptionUnavailable("invalid_transcription_response") from exc
-    if not text:
-        raise TranscriptionUnavailable("empty_transcription")
-    return {"text": text, "model": settings.openai_transcription_model}
+        payload = response.json()
+        answer = str(payload["transport"]["sdp"])
+        live_id = str(payload.get("session", {}).get("id", ""))
+    except (ValueError, KeyError, TypeError, AttributeError) as exc:
+        raise LiveSessionUnavailable("invalid_live_session_response") from exc
+    if not answer.strip():
+        raise LiveSessionUnavailable("invalid_live_session_response")
+    return {"sdp": answer, "live_session_id": live_id}
 
 
 async def synthesize_speech(text: str, language: str, settings: Settings) -> dict:

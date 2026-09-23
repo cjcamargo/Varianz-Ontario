@@ -28,8 +28,10 @@ services:
         sync: false
       - key: OPENAI_MODEL
         value: gpt-5.6-luna
-      - key: OPENAI_TRANSCRIPTION_MODEL
-        value: whisper-1
+      - key: OPENAI_LIVE_MODEL
+        value: gpt-live-1
+      - key: OPENAI_LIVE_VOICE
+        value: marin
       - key: OPENAI_SPEECH_MODEL
         value: tts-1
       - key: OPENAI_VOICE

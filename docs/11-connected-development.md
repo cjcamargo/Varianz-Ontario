@@ -14,7 +14,7 @@ Never commit `.env`, Supabase tokens/database passwords, service-role keys or `O
 
 ## OpenAI
 
-Create a project-scoped API key and place it in local `.env` as `OPENAI_API_KEY`. The key is server-only. `OPENAI_MODEL` defaults to `gpt-5.6-luna` and remains configurable. Voice messages use the same server-side key and `OPENAI_TRANSCRIPTION_MODEL`, which defaults to `whisper-1`. Spoken replies use `OPENAI_SPEECH_MODEL=tts-1` and `OPENAI_VOICE=alloy`; the structured assistant contract selects English or Spanish from the current operator question. The interpretation endpoint sends `store: false`, bounded evidence and a bounded output budget.
+Create a project-scoped API key and place it in local `.env` as `OPENAI_API_KEY`. The key is server-only. `OPENAI_MODEL` defaults to `gpt-5.6-luna` and remains configurable. Live voice conversations with Varianz AI use the same server-side key: the API opens a GPT-Live WebRTC session (`OPENAI_LIVE_MODEL=gpt-live-1`, voice `OPENAI_LIVE_VOICE=marin`) whose Responses backend (`OPENAI_MODEL`) reasons over the current evidence bundle; the browser only exchanges SDP and never sees the key. Spoken replies use `OPENAI_SPEECH_MODEL=tts-1` and `OPENAI_VOICE=alloy`; the structured assistant contract selects English or Spanish from the current operator question. The interpretation endpoint sends `store: false`, bounded evidence and a bounded output budget.
 
 ## GitHub
 

@@ -10,12 +10,12 @@ from uuid import UUID
 import httpx
 import pandas as pd
 import psycopg
-from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
-from .agent import AgentUnavailable, explain_operational
+from .agent import AgentUnavailable, explain_operational, live_session_config
 from .analytics import operational_snapshot
 from .baseline_artifact import BaselineArtifactError, baseline_artifact_status, get_baseline_artifact
 from .auth import Principal, current_principal
@@ -33,7 +33,12 @@ from .intraday_artifact import get_intraday_artifact, intraday_artifact_status
 from .replay import ReplaySession
 from .store import ORG_ID, SITE_ID, get_operational_data
 from .tariffs import get_tariff, put_tariff
-from .voice import SpeechUnavailable, TranscriptionUnavailable, synthesize_speech, transcribe_audio
+from .voice import (
+    LiveSessionUnavailable,
+    SpeechUnavailable,
+    create_live_session,
+    synthesize_speech,
+)
 
 
 operational_data_ready = Event()
@@ -120,12 +125,6 @@ app.add_middleware(
 api = APIRouter(prefix="/api/v1")
 sessions: dict[UUID, ReplaySession] = {}
 assistant_histories: dict[UUID, list[dict[str, str]]] = {}
-MAX_VOICE_BYTES = 10 * 1024 * 1024
-VOICE_CONTENT_TYPES = {
-    "audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/wav", "audio/x-wav",
-}
-
-
 class ReplayMutation(BaseModel):
     action: str
     expected_revision: int
@@ -134,6 +133,11 @@ class ReplayMutation(BaseModel):
 
 class AgentQuestion(BaseModel):
     question: str = Field(min_length=3, max_length=1000)
+    anomaly_id: str | None = None
+
+
+class LiveSessionRequest(BaseModel):
+    sdp: str = Field(min_length=10, max_length=20000)
     anomaly_id: str | None = None
 
 
@@ -886,7 +890,7 @@ def health():
         "intraday_artifact": intraday_artifact_status(),
         "openai": {
             "configured": bool(settings.openai_api_key),
-            "transcription_model": settings.openai_transcription_model,
+            "live_model": settings.openai_live_model,
             "speech_model": settings.openai_speech_model,
         },
     }
@@ -1095,12 +1099,7 @@ def anomaly_detail(
     }
 
 
-@api.post("/replay-sessions/{session_id}/assistant/messages")
-def assistant_message(
-    session_id: UUID,
-    request: AgentQuestion,
-    principal: Principal = Depends(current_principal),
-):
+def _assistant_evidence(session_id: UUID, principal: Principal, anomaly_id: str | None) -> dict:
     snapshot = _snapshot(session_id, "24h", principal)
     data = _data()
     cursor = pd.Timestamp(snapshot["cursor"])
@@ -1124,7 +1123,16 @@ def assistant_message(
         calibrations=data.energy_calibrations,
         cache_source=data.intraday_backend,
     )
-    evidence = _agent_evidence(snapshot, request.anomaly_id)
+    return _agent_evidence(snapshot, anomaly_id)
+
+
+@api.post("/replay-sessions/{session_id}/assistant/messages")
+def assistant_message(
+    session_id: UUID,
+    request: AgentQuestion,
+    principal: Principal = Depends(current_principal),
+):
+    evidence = _assistant_evidence(session_id, principal, request.anomaly_id)
     history = assistant_histories.setdefault(session_id, [])
     try:
         question = request.question.strip()
@@ -1148,36 +1156,33 @@ def assistant_message(
         raise HTTPException(503, "openai_connection_unavailable") from exc
 
 
-@api.post("/replay-sessions/{session_id}/assistant/transcriptions")
-async def assistant_transcription(
+@api.post("/replay-sessions/{session_id}/assistant/live-sessions")
+def assistant_live_session(
     session_id: UUID,
-    audio: UploadFile = File(...),
+    request: LiveSessionRequest,
     principal: Principal = Depends(current_principal),
 ):
-    _session(session_id, principal)
-    content_type = (audio.content_type or "").split(";", 1)[0].lower()
-    if content_type not in VOICE_CONTENT_TYPES:
-        raise HTTPException(415, "unsupported_audio_format")
-    content = await audio.read(MAX_VOICE_BYTES + 1)
-    await audio.close()
-    if not content:
-        raise HTTPException(422, "empty_audio")
-    if len(content) > MAX_VOICE_BYTES:
-        raise HTTPException(413, "audio_too_large")
+    if not settings.openai_api_key:
+        raise HTTPException(503, "openai_not_configured")
+    evidence = _assistant_evidence(session_id, principal, request.anomaly_id)
+    # The chart series is useful on screen but only inflates the spoken backend prompt.
+    impact = evidence.get("business_impact")
+    if isinstance(impact, dict):
+        evidence["business_impact"] = {
+            key: value for key, value in impact.items() if key != "performance_series"
+        }
     try:
-        result = await transcribe_audio(
-            content,
-            audio.filename or "varianz-voice.webm",
-            content_type,
-            settings,
+        result = create_live_session(
+            request.sdp, live_session_config(evidence, settings), settings
         )
-    except TranscriptionUnavailable as exc:
+    except LiveSessionUnavailable as exc:
         raise HTTPException(exc.status_code, exc.code) from exc
     return {
         "session_id": session_id,
-        "transcript": result["text"],
-        "model": result["model"],
-        "language": "auto",
+        "live_session_id": result["live_session_id"],
+        "sdp": result["sdp"],
+        "model": settings.openai_live_model,
+        "voice": settings.openai_live_voice,
     }
 
 

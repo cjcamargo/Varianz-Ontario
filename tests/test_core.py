@@ -37,7 +37,7 @@ from varianz.energy import (
     tou_peak_mask,
 )
 from varianz.replay import ReplaySession
-from varianz.voice import TranscriptionUnavailable
+from varianz.voice import LiveSessionUnavailable
 from fastapi.testclient import TestClient
 from varianz.main import (
     _agent_evidence,
@@ -568,36 +568,54 @@ class ApiTests(unittest.TestCase):
             )
         self.assertEqual(response.status_code, 503)
 
-    def test_voice_transcription_fails_closed_without_server_key(self):
+    def test_live_voice_fails_closed_without_server_key(self):
         client = TestClient(app)
         session = client.post("/api/v1/replay-sessions").json()
         with patch.object(settings, "openai_api_key", None):
             response = client.post(
-                f"/api/v1/replay-sessions/{session['id']}/assistant/transcriptions",
-                files={"audio": ("voice.webm", b"demo-audio", "audio/webm")},
+                f"/api/v1/replay-sessions/{session['id']}/assistant/live-sessions",
+                json={"sdp": "v=0 o=- 1 1 IN IP4 0.0.0.0"},
             )
         self.assertEqual(response.status_code, 503)
 
-    def test_voice_transcription_rejects_unsupported_media(self):
+    def test_live_voice_opens_grounded_varianz_ai_session(self):
         client = TestClient(app)
         session = client.post("/api/v1/replay-sessions").json()
-        response = client.post(
-            f"/api/v1/replay-sessions/{session['id']}/assistant/transcriptions",
-            files={"audio": ("voice.txt", b"not-audio", "text/plain")},
-        )
-        self.assertEqual(response.status_code, 415)
-
-    def test_voice_transcription_surfaces_decoding_failure(self):
-        client = TestClient(app)
-        session = client.post("/api/v1/replay-sessions").json()
-        failure = TranscriptionUnavailable("invalid_audio", 422)
-        with patch("varianz.main.transcribe_audio", new=AsyncMock(side_effect=failure)):
+        opened = {"sdp": "v=0 answer", "live_session_id": "live_123"}
+        with (
+            patch.object(settings, "openai_api_key", "test-key"),
+            patch("varianz.main.create_live_session", return_value=opened) as create,
+        ):
             response = client.post(
-                f"/api/v1/replay-sessions/{session['id']}/assistant/transcriptions",
-                files={"audio": ("voice.webm", b"invalid-container", "audio/webm")},
+                f"/api/v1/replay-sessions/{session['id']}/assistant/live-sessions",
+                json={"sdp": "v=0 offer-sdp"},
             )
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.json()["detail"], "invalid_audio")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["sdp"], "v=0 answer")
+        sdp, config, _ = create.call_args.args
+        self.assertEqual(sdp, "v=0 offer-sdp")
+        self.assertEqual(config["model"], settings.openai_live_model)
+        self.assertIn("Varianz AI", config["instructions"])
+        backend = config["delegation"]["responses"]
+        self.assertEqual(config["delegation"]["type"], "responses")
+        self.assertEqual(backend["model"], settings.openai_model)
+        self.assertIn(session["id"], backend["instructions"])
+        self.assertNotIn("performance_series", backend["instructions"])
+
+    def test_live_voice_surfaces_upstream_failure(self):
+        client = TestClient(app)
+        session = client.post("/api/v1/replay-sessions").json()
+        failure = LiveSessionUnavailable("live_rate_limited", 429)
+        with (
+            patch.object(settings, "openai_api_key", "test-key"),
+            patch("varianz.main.create_live_session", side_effect=failure),
+        ):
+            response = client.post(
+                f"/api/v1/replay-sessions/{session['id']}/assistant/live-sessions",
+                json={"sdp": "v=0 offer-sdp"},
+            )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.json()["detail"], "live_rate_limited")
 
     def test_speech_reply_fails_closed_without_server_key(self):
         client = TestClient(app)

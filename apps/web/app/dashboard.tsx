@@ -32,7 +32,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
   const [startupMessage,setStartupMessage]=useState("Connecting to the analytics endpoint…");
   const [energyData,setEnergyData]=useState<Snapshot|null>(null),[energyGrain,setEnergyGrain]=useState<"5min"|"1h">("1h");
   const [question,setQuestion]=useState("What requires operator attention at this replay cursor?");
-  const [messages,setMessages]=useState<ChatMessage[]>([]),[asking,setAsking]=useState(false),[transcribing,setTranscribing]=useState(false),[focus,setFocus]=useState<string|null>(null);
+  const [messages,setMessages]=useState<ChatMessage[]>([]),[asking,setAsking]=useState(false),[focus,setFocus]=useState<string|null>(null);
   const requestRef=useRef<AbortController|null>(null);
   const initializedTokenRef=useRef<string|null>(null);
   const mutationInFlightRef=useRef(false);
@@ -155,26 +155,16 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       setMessages(current=>[...current,{id:crypto.randomUUID(),role:"assistant",text:answer.answer,result:answer}]);setError("");
     }catch(e){setQuestion(current=>current||prompt);setError(e instanceof Error?e.message:"Assistant unavailable")}finally{setAsking(false)}
   }
-  async function transcribeVoice(audio:Blob){
-    if(!data)return;
-    setError("");setTranscribing(true);
-    const extension=audio.type.includes("mp4")?"mp4":audio.type.includes("ogg")?"ogg":"webm";
-    const body=new FormData();body.append("audio",audio,`varianz-voice.${extension}`);
-    try{
-      const response=await apiFetch(`/replay-sessions/${data.session_id}/assistant/transcriptions`,{method:"POST",body});
-      if(response.status===401){await onSignOut();return}
-      if(!response.ok){
-        let detail="";try{const payload=await response.json();detail=typeof payload?.detail==="string"?payload.detail:""}catch{}
-        const message=response.status===413?"Voice message is too large. Keep recordings under one minute.":response.status===415?"This browser audio format is not supported.":response.status===422?"The recording could not be decoded. Speak for at least one second and retry.":response.status===429?"Voice transcription is temporarily rate limited. Retry in a moment.":detail==="transcription_timeout"?"Voice transcription timed out. Retry with a shorter recording.":detail==="openai_auth_error"?"Voice transcription credentials are not accepted by OpenAI.":detail==="transcription_model_unavailable"?"The configured transcription model is unavailable.":detail==="openai_not_configured"?"Voice transcription is not configured on the API.":"Varianz could not reach the transcription service. Please retry.";
-        throw new Error(message);
-      }
-      const result:{transcript:string}=await response.json();
-      const transcript=result.transcript.trim();
-      if(transcript.length<3)throw new Error("No clear speech was detected. Please try again.");
-      setQuestion(transcript);
-      await ask(transcript);
-    }catch(event){setError(event instanceof Error?event.message:"Voice transcription unavailable")}
-    finally{setTranscribing(false)}
+  async function connectLive(offerSdp:string){
+    if(!data)throw new Error("Replay session unavailable");
+    const response=await apiFetch(`/replay-sessions/${data.session_id}/assistant/live-sessions`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sdp:offerSdp,anomaly_id:focus})});
+    if(response.status===401){await onSignOut();throw new Error("Session expired")}
+    if(!response.ok){
+      let detail="";try{const payload=await response.json();detail=typeof payload?.detail==="string"?payload.detail:""}catch{}
+      throw new Error(response.status===429?"Varianz AI voice is busy. Retry in a moment.":detail==="openai_not_configured"||detail==="openai_auth_error"?"Varianz AI voice is not configured on the server.":detail==="live_model_unavailable"?"The live voice model is not available for this API key.":"Varianz AI voice could not connect. Please retry.");
+    }
+    const result:{sdp:string}=await response.json();
+    return result.sdp;
   }
   async function synthesizeVoice(text:string,language:"en"|"es"){
     if(!data)throw new Error("Replay session unavailable");
@@ -196,7 +186,7 @@ export default function Dashboard({accessToken,userEmail,onSignOut}:DashboardPro
       {data&&view==="energy"?(visibleEnergy?<EnergyView data={visibleEnergy} k={visibleEnergy.kpis} baseline={visibleEnergy.baseline} ask={ask} grain={energyGrain} setGrain={setEnergyGrain} openSettings={()=>setView("settings")}/>:<div className="loading"><span/>Loading energy analytics…</div>):null}
       {data&&view==="climate"?<ClimateView data={data} k={k}/>:null}
       {data&&view==="anomalies"?<AnomaliesView data={data} focus={focus} setFocus={setFocus} ask={ask}/>:null}
-      {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} transcribing={transcribing} ask={ask} onVoice={transcribeVoice} onSpeak={synthesizeVoice}/>:null}
+      {data&&view==="assistant"?<AssistantView data={data} question={question} setQuestion={setQuestion} messages={messages} asking={asking} ask={ask} onLiveConnect={connectLive} onSpeak={synthesizeVoice}/>:null}
       {data&&view==="settings"?<SettingsView siteId={data.site.id} apiFetch={apiFetch} onSaved={async()=>{setEnergyData(null);await refresh(data.session_id)}}/>:null}
     </main>
   </div>

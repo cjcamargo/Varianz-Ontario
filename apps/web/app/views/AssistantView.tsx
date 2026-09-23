@@ -1,46 +1,94 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatMessage, Snapshot } from "../lib/types";
 import { date } from "../lib/format";
 
 type AssistantProps = {
   data:Snapshot; question:string; setQuestion:(q:string)=>void;
-  messages:ChatMessage[]; asking:boolean; transcribing:boolean;
-  ask:(custom?:string,anomalyId?:string)=>void; onVoice:(audio:Blob)=>Promise<void>;
+  messages:ChatMessage[]; asking:boolean;
+  ask:(custom?:string,anomalyId?:string)=>void; onLiveConnect:(offerSdp:string)=>Promise<string>;
   onSpeak:(text:string,language:"en"|"es")=>Promise<Blob>;
 };
 
-function VoiceRecorder({busy,onVoice}:{busy:boolean;onVoice:(audio:Blob)=>Promise<void>}){
-  const [recording,setRecording]=useState(false),[error,setError]=useState("");
-  const recorderRef=useRef<MediaRecorder|null>(null),streamRef=useRef<MediaStream|null>(null);
-  const chunksRef=useRef<Blob[]>([]),timerRef=useRef<ReturnType<typeof setTimeout>|null>(null);
-  const startedAtRef=useRef(0);
-  const stop=()=>{if(timerRef.current)clearTimeout(timerRef.current);timerRef.current=null;const recorder=recorderRef.current;if(recorder&&recorder.state!=="inactive")recorder.stop()};
-  useEffect(()=>()=>{if(timerRef.current)clearTimeout(timerRef.current);const recorder=recorderRef.current;if(recorder&&recorder.state!=="inactive")recorder.stop();streamRef.current?.getTracks().forEach(track=>track.stop())},[]);
-  async function toggle(){
-    if(recording){stop();return}
-    if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==="undefined"){setError("Voice recording is not supported in this browser.");return}
-    try{
-      setError("");
-      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
-      streamRef.current=stream;chunksRef.current=[];
-      const candidates=["audio/webm;codecs=opus","audio/mp4;codecs=mp4a.40.2","audio/mp4","audio/ogg;codecs=opus"];
-      const mimeType=candidates.find(type=>MediaRecorder.isTypeSupported(type));
-      const recorder=new MediaRecorder(stream,mimeType?{mimeType,audioBitsPerSecond:64000}:{audioBitsPerSecond:64000});recorderRef.current=recorder;
-      recorder.ondataavailable=event=>{if(event.data.size)chunksRef.current.push(event.data)};
-      recorder.onerror=()=>setError("The browser could not encode this recording. Please retry.");
-      recorder.onstop=async()=>{
-        setRecording(false);stream.getTracks().forEach(track=>track.stop());streamRef.current=null;
-        const audio=new Blob(chunksRef.current,{type:recorder.mimeType||"audio/webm"});chunksRef.current=[];
-        if(Date.now()-startedAtRef.current<900){setError("Speak for at least one second before stopping.");return}
-        if(audio.size)await onVoice(audio);else setError("No audio was captured. Check the microphone and retry.");
-      };
-      startedAtRef.current=Date.now();recorder.start();setRecording(true);timerRef.current=setTimeout(stop,60000);
-    }catch{setError("Microphone access was not granted. Allow it in your browser and try again.")}
-  }
-  return <div className="voice-control"><button type="button" className={recording?"voice-button recording":"voice-button"} onClick={toggle} disabled={busy&&!recording} aria-label={recording?"Stop and transcribe voice message":"Start voice message"}><span>{recording?"■":"●"}</span>{recording?"Stop":"Talk"}</button><small>{recording?"Listening — tap Stop when finished":busy?"Transcribing voice…":"Ask Varianz by voice · up to 60 seconds"}</small>{error?<em>{error}</em>:null}</div>;
+type LiveTurn={id:string;role:"operator"|"varianz";text:string};
+type LiveState="idle"|"connecting"|"live"|"error";
+
+function waitForIceGathering(pc:RTCPeerConnection){
+  if(pc.iceGatheringState==="complete")return Promise.resolve();
+  return new Promise<void>(resolve=>{
+    const done=()=>{clearTimeout(timer);pc.removeEventListener("icegatheringstatechange",check);resolve()};
+    const check=()=>{if(pc.iceGatheringState==="complete")done()};
+    const timer=setTimeout(done,2500);
+    pc.addEventListener("icegatheringstatechange",check);
+  });
 }
 
-export function AssistantView({data,question,setQuestion,messages,asking,transcribing,ask,onVoice,onSpeak}:AssistantProps){
+function LiveVoice({onConnect}:{onConnect:(offerSdp:string)=>Promise<string>}){
+  const [state,setState]=useState<LiveState>("idle"),[error,setError]=useState(""),[muted,setMuted]=useState(false),[turns,setTurns]=useState<LiveTurn[]>([]);
+  const pcRef=useRef<RTCPeerConnection|null>(null),streamRef=useRef<MediaStream|null>(null),audioRef=useRef<HTMLAudioElement|null>(null),attemptRef=useRef(0);
+  // Invalidates any in-flight connection attempt and releases the microphone; safe to call on unmount.
+  const teardown=useCallback(()=>{
+    attemptRef.current++;
+    pcRef.current?.close();pcRef.current=null;
+    streamRef.current?.getTracks().forEach(track=>track.stop());streamRef.current=null;
+    if(audioRef.current)audioRef.current.srcObject=null;
+  },[]);
+  useEffect(()=>teardown,[teardown]);
+  const append=(role:LiveTurn["role"],delta:string)=>{if(!delta)return;setTurns(current=>{const last=current[current.length-1];if(last?.role===role)return [...current.slice(0,-1),{...last,text:last.text+delta}];return [...current,{id:crypto.randomUUID(),role,text:delta.trimStart()}].slice(-8)})};
+  async function start(){
+    if(!navigator.mediaDevices?.getUserMedia||typeof RTCPeerConnection==="undefined"){setState("error");setError("Live voice is not supported in this browser.");return}
+    const attempt=++attemptRef.current;
+    setError("");setTurns([]);setMuted(false);setState("connecting");
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+      if(attempt!==attemptRef.current){stream.getTracks().forEach(track=>track.stop());return}
+      streamRef.current=stream;
+      const pc=new RTCPeerConnection();pcRef.current=pc;
+      pc.ontrack=event=>{const audio=audioRef.current;if(audio){audio.srcObject=event.streams[0];void audio.play().catch(()=>{})}};
+      stream.getTracks().forEach(track=>pc.addTrack(track,stream));
+      pc.onconnectionstatechange=()=>{
+        if(attempt!==attemptRef.current)return;
+        if(pc.connectionState==="connected")setState("live");
+        if(pc.connectionState==="failed"||pc.connectionState==="disconnected"){teardown();setState("error");setError("The voice connection dropped. Start the conversation again.")}
+      };
+      const channel=pc.createDataChannel("oai-events");
+      channel.onmessage=message=>{
+        if(attempt!==attemptRef.current)return;
+        let event:{type?:string;delta?:string};
+        try{event=JSON.parse(message.data)}catch{return}
+        if(event.type==="session.started")setState("live");
+        else if(event.type==="session.input_transcript.delta")append("operator",event.delta||"");
+        else if(event.type==="session.output_transcript.delta")append("varianz",event.delta||"");
+        else if(event.type==="session.closed"){teardown();setState("idle")}
+        else if(event.type==="error")setError("Varianz AI hit a problem answering. Keep talking or restart the conversation.");
+      };
+      await pc.setLocalDescription(await pc.createOffer());
+      await waitForIceGathering(pc);
+      const answer=await onConnect(pc.localDescription?.sdp||"");
+      if(attempt!==attemptRef.current)return;
+      await pc.setRemoteDescription({type:"answer",sdp:answer});
+    }catch(event){
+      if(attempt!==attemptRef.current)return;
+      teardown();setState("error");
+      setError(event instanceof DOMException&&event.name==="NotAllowedError"?"Microphone access was not granted. Allow it in your browser and try again.":event instanceof Error?event.message:"Varianz AI voice could not connect.");
+    }
+  }
+  function stop(){teardown();setState("idle");setMuted(false)}
+  function toggleMute(){const next=!muted;streamRef.current?.getAudioTracks().forEach(track=>{track.enabled=!next});setMuted(next)}
+  const active=state==="live"||state==="connecting";
+  const status=state==="connecting"?"Connecting to Varianz AI…":state==="live"?(muted?"Microphone muted":"Live — just talk, you can interrupt anytime"):"Talk with Varianz AI in real time";
+  return <div className="voice-control live-voice">
+    <div className="live-voice-bar">
+      <button type="button" className={active?"voice-button recording":"voice-button"} onClick={active?stop:()=>void start()} aria-label={active?"End live conversation with Varianz AI":"Start live conversation with Varianz AI"}><span>{active?"■":"●"}</span>{active?"End":"Talk live"}</button>
+      {state==="live"?<button type="button" className="voice-button" onClick={toggleMute} aria-pressed={muted}>{muted?"Unmute":"Mute"}</button>:null}
+      <small aria-live="polite">{status}</small>
+      {error?<em role="alert">{error}</em>:null}
+    </div>
+    {turns.length?<div className="live-transcript" aria-live="polite">{turns.map(turn=><p key={turn.id} className={turn.role}><b>{turn.role==="operator"?"YOU":"VARIANZ AI"}</b>{turn.text}</p>)}</div>:null}
+    <audio ref={audioRef} autoPlay hidden/>
+  </div>;
+}
+
+export function AssistantView({data,question,setQuestion,messages,asking,ask,onLiveConnect,onSpeak}:AssistantProps){
   const [voiceReplies,setVoiceReplies]=useState(true),[speechBusy,setSpeechBusy]=useState<string|null>(null),[speaking,setSpeaking]=useState<string|null>(null),[speechError,setSpeechError]=useState("");
   const audioRef=useRef<HTMLAudioElement|null>(null),audioUrls=useRef<Map<string,string>>(new Map()),lastAutoSpoken=useRef<string|null>(null);
   async function playMessage(message:ChatMessage){
@@ -65,7 +113,7 @@ export function AssistantView({data,question,setQuestion,messages,asking,transcr
         {messages.map(message=>message.role==="operator"
           ?<div className="chat-message operator" key={message.id}><span>YOU</span><p>{message.text}</p></div>
           :<div className="chat-message varianz" key={message.id}>
-            <span>VARIANZ</span>
+            <span>VARIANZ AI</span>
             {message.result?<>
               <div className="recommendation-first"><small>RECOMMENDED NEXT CHECK</small><strong>{message.result.recommendation}</strong></div>
               <p>{message.result.answer}</p>
@@ -75,11 +123,11 @@ export function AssistantView({data,question,setQuestion,messages,asking,transcr
               <details><summary>Evidence and limitations</summary><h3>Evidence-backed claims</h3>{message.result.claims.map((claim,index)=><div className="claim" key={index}><p>{claim.text}</p><div className="chips">{claim.evidence_ids.map(id=><span key={id}>{id}</span>)}</div></div>)}{message.result.limitations.length?<div className="limitations"><b>Limitations</b>{message.result.limitations.map((item,index)=><p key={index}>{item}</p>)}</div>:null}</details>
             </>:<p>{message.text}</p>}
           </div>)}
-        {asking?<div className="chat-message varianz thinking"><span>VARIANZ</span><p>Reviewing current evidence…</p></div>:null}
+        {asking?<div className="chat-message varianz thinking"><span>VARIANZ AI</span><p>Reviewing current evidence…</p></div>:null}
       </div>
       {speechError?<p className="speech-error">{speechError}</p>:null}
-      <VoiceRecorder busy={asking||transcribing} onVoice={onVoice}/>
-      <form className="chat-composer" onSubmit={event=>{event.preventDefault();ask()}}><textarea value={question} onChange={event=>setQuestion(event.target.value)} placeholder="Ask a follow-up about energy, climate, resources or an anomaly…"/><button className="primary" disabled={asking||transcribing||question.trim().length<3}>{transcribing?"Transcribing…":asking?"Analyzing…":"Send →"}</button></form>
+      <LiveVoice onConnect={onLiveConnect}/>
+      <form className="chat-composer" onSubmit={event=>{event.preventDefault();ask()}}><textarea value={question} onChange={event=>setQuestion(event.target.value)} placeholder="Ask a follow-up about energy, climate, resources or an anomaly…"/><button className="primary" disabled={asking||question.trim().length<3}>{asking?"Analyzing…":"Send →"}</button></form>
     </article>
     <aside className="panel evidence-drawer"><span>CURRENT EVIDENCE</span><h3>Replay context</h3><p>{date(data.cursor)}</p><h3>Versions</h3><p>{data.data_version}</p><p>{data.model_version}</p><h3>Metric terminology</h3><p>Official Wageningen dataset definitions · {data.definitions_version}</p><h3>Evidence IDs</h3><div className="chips vertical">{data.evidence_ids.map(id=><span key={id}>{id}</span>)}</div></aside>
   </section>;
